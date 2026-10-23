@@ -1,0 +1,23 @@
+{
+  "name": "forgedtitanium-acc",
+  "version": "0.14.0",
+  "description": "FORGEDTITANIUM Agent Command Centre reporting service (private)",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node --test \"tests/*_test.js\"",
+    "test:visual": "python3 tests/acc_visual_test.py",
+    "server": "node server/acc_server.js",
+    "admin": "node server/acc_admin.js"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3",
+    "playwright-core": "^1.49.1"
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+acc_data/
+acc_keys.json
+*.sqlite3
+*.sqlite3-*
+backups/
+.env
+.env.*
+!service.env.example
+*.pem
+*.key
+__pycache__/
+*.pyc

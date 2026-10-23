@@ -1,0 +1,45 @@
+{
+ "schema": "ti-agent-outcome/1",
+ "finished_at_utc": "2026-10-23T01:55:20Z",
+ "agent": "03AA-04_Master_Agent_TI_Ops_Director",
+ "component": "gated_haiku_monitor",
+ "exit_code": 3,
+ "error": null,
+ "outcome": {
+  "at": "2026-10-23T01:55:12+00:00",
+  "workflowExecuted": true,
+  "triage": "NOT_RUN_NOT_CONFIGURED",
+  "triageCompleted": false,
+  "reason": "limits_not_configured",
+  "headlines": {
+   "collected": 336,
+   "new": 12,
+   "pending": 12
+  },
+  "calls": 0,
+  "model": "claude-haiku-5-5",
+  "estimatedUsd": 0.001733,
+  "publication": {
+   "setting": "unset",
+   "enabled": false,
+   "published": 0
+  },
+  "stateBackend": "git",
+  "spend": {
+   "mode": "dry_run",
+   "committedToday": 0.0,
+   "committedMonth": 0.0,
+   "limits": {
+    "perTask": null,
+    "daily": null,
+    "monthly": null
+   }
+  },
+  "consecutiveUntriaged": 11,
+  "consecutiveFailed": 0
+ },
+ "_fixture": {
+  "source": "derived from the real record: gateway not configured path (exit 3)",
+  "step_outcome": "failure"
+ }
+}

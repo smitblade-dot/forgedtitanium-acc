@@ -1,0 +1,33 @@
+# Fly.io configuration for the ACC reporting service. Run `fly deploy` from this directory (service/). PREPARED, NOT DEPLOYED. Syntax not yet validated by flyctl:
+# run `fly config validate` before the first deploy. Holds no credentials; agent credentials are issued on the machine afterwards.
+app = "forgedtitanium-acc-service"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ACC_PUBLIC_ORIGIN = "https://smitblade-dot.github.io"
+
+[mounts]
+  source = "acc_data"
+  destination = "/data"
+  initial_size = "1gb"
+
+[http_service]
+  internal_port = 8788
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/v1/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

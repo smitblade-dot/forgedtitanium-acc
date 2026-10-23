@@ -1,0 +1,3 @@
+Copy of scripts/acc_report.py from smitblade-dot/Travel_Intelligence, draft PR #44, branch feature/03aa-04-acc-reporting, commit fb05c19 (not merged).
+sha256 d56ff199bbdcfca57b855698ac1bd657ea7f0d73c6f4f5ba149b9108e64dce31
+Used only by the ACC integration tests and the end-to-end demonstration. Do not edit here; change it on the TI branch and copy it again.

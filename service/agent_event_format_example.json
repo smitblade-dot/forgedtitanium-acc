@@ -1,0 +1,29 @@
+{
+  "version": "1.1",
+  "events": [
+    {
+      "agent_id": "03AA-04_Master_Agent_TI_Ops_Director",
+      "status": "working",
+      "timestamp": "2026-10-22T16:40:00Z",
+      "event_id": "FORMAT-EXAMPLE-001",
+      "task": "FORMAT EXAMPLE ONLY, not a real report",
+      "dry_run": true,
+      "model_tier": "haiku",
+      "cost_eur": 0.0,
+      "cost_basis": "api"
+    },
+    {
+      "agent_id": "03AA-04_Country_Intelligence_Builder_TI",
+      "status": "awaiting_approval",
+      "timestamp": "2026-10-22T16:30:00Z",
+      "event_id": "FORMAT-EXAMPLE-002",
+      "task": "FORMAT EXAMPLE ONLY, not a real report",
+      "dry_run": true,
+      "model_tier": "sonnet",
+      "escalation_reason": "FORMAT EXAMPLE: reason Haiku was insufficient",
+      "cost_eur": 0.0,
+      "cost_basis": "api",
+      "approval_request": { "summary": "FORMAT EXAMPLE: what needs approving", "reference": "EXAMPLE-REF" }
+    }
+  ]
+}

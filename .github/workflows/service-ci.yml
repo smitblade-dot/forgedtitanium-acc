@@ -1,0 +1,26 @@
+name: ACC service tests and security checks
+# Tests the reporting service source under service/. It never deploys anything and never touches the published site.
+on:
+  push:
+    branches: [main]
+    paths: ["service/**", ".github/workflows/service-ci.yml"]
+  pull_request:
+    paths: ["service/**", ".github/workflows/service-ci.yml"]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: service
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: service/package-lock.json
+      - run: npm ci
+      - name: Service tests (ingestion, audit, outage recovery, public feed, deployment and public-source checks)
+        run: npm test

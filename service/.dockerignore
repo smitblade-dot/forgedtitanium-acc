@@ -1,0 +1,8 @@
+node_modules
+tests
+docs
+.git
+*.md
+acc_data
+acc_keys.json
+.env*

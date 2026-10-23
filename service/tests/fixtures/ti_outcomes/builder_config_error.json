@@ -1,0 +1,15 @@
+{
+ "schema": "ti-agent-outcome/1",
+ "finished_at_utc": "2026-10-23T01:55:20Z",
+ "agent": "03AA-04_Country_Intelligence_Builder_TI",
+ "component": "country_builder",
+ "exit_code": 3,
+ "mode": "publish",
+ "config_errors": 1,
+ "paid_model_allowed": false,
+ "facts": null,
+ "_fixture": {
+  "source": "synthetic: configuration error path (exit 3)",
+  "step_outcome": "failure"
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "schema": "ti-agent-outcome/1",
+ "agent": "03AA-04_Production_Controller_TI",
+ "finished_at_utc": "2026-10-23T05:34:50Z",
+ "component": "production_controller",
+ "exit_code": 0,
+ "mode": "observe",
+ "config_errors": 0,
+ "verdict": "DEGRADED",
+ "checks": 6,
+ "detections_open": 1,
+ "requires_human": 1,
+ "critical": 0,
+ "opened": 1,
+ "escalated": 0,
+ "_fixture": {
+  "source": "real production.run with test harness (synthetic inputs)",
+  "step_outcome": "success"
+ }
+}

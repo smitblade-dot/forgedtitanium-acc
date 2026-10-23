@@ -1,0 +1,29 @@
+{
+ "schema": "ti-agent-outcome/1",
+ "agent": "03AA-04_Country_Intelligence_Builder_TI",
+ "finished_at_utc": "2026-10-23T05:34:50Z",
+ "component": "country_builder",
+ "exit_code": 0,
+ "mode": "publish",
+ "config_errors": 0,
+ "paid_model_allowed": false,
+ "facts": {
+  "tasks": 3,
+  "task_states": {
+   "blocked": 3
+  },
+  "published_records": 2,
+  "publication_failures": [],
+  "verification_pending": false,
+  "exceptions_held": 2,
+  "exceptions_need_decision": 0,
+  "paused_or_stopped": false,
+  "model_calls": 0,
+  "models": [],
+  "estimated_cost_usd": 0
+ },
+ "_fixture": {
+  "source": "derived from the real builder record: publish mode, no decision needed",
+  "step_outcome": "success"
+ }
+}
