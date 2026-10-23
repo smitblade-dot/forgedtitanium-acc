@@ -12,6 +12,11 @@ fs.mkdirSync(OUT, { recursive: true });
 const CHROME = [process.env.ACC_CHROME, '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome', '/usr/bin/google-chrome', '/usr/bin/chromium'].find(p => p && fs.existsSync(p));
 if (!CHROME) { console.error('No Chromium/Chrome found. Set ACC_CHROME.'); process.exit(2); }
 
+// The one approved external address (the ACC service's restricted public status). The checks stay hermetic: the browser's request
+// to it is answered locally with the committed empty status document, so no test depends on the live service or its CORS rules.
+const APPROVED = 'https://forgedtitanium-acc-service.fly.dev/public/status.json';
+const EMPTY_STATUS = fs.readFileSync(path.join(ROOT, 'site', 'status.json'), 'utf8');
+
 const results = [];
 const check = (name, ok, detail = '') => { results.push({ check: name, ok: !!ok, detail }); console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail ? ': ' + detail : '')); };
 
@@ -21,6 +26,7 @@ const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-san
 
 async function open(viewport, label) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, locale: 'en-GB', timezoneId: 'Europe/Nicosia' });
+  await ctx.route(APPROVED, route => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: EMPTY_STATUS }));
   const page = await ctx.newPage();
   const problems = [], requests = [];
   page.on('console', m => { if (['error', 'warning'].includes(m.type())) problems.push(m.type() + ': ' + m.text()); });
@@ -68,9 +74,9 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   await page.locator('#agentGrid').scrollIntoViewIfNeeded();
   await page.screenshot({ path: path.join(OUT, '05_agent_register_strip.png'), fullPage: true });
 
-  const external = requests.filter(u => !u.startsWith(base));
-  check('desktop: zero requests outside the page origin', external.length === 0, external.join(', '));
-  check('desktop: only static files requested', requests.every(u => /\/(index\.html|acc_core\.js|acc_register\.js|)$/.test(new URL(u).pathname)), requests.join(', '));
+  const external = requests.filter(u => !u.startsWith(base) && u !== APPROVED);
+  check('desktop: zero requests outside the page origin except the one approved status address', external.length === 0, external.join(', '));
+  check('desktop: only static files requested', requests.every(u => /\/(index\.html|acc_core\.js|acc_register\.js|status\.json|)$/.test(new URL(u).pathname)), requests.join(', '));
   check('desktop: no console errors or warnings', problems.length === 0, problems.join(' | '));
   await ctx.close();
 }

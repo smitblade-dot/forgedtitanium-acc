@@ -3,15 +3,16 @@
 A static, interactive browser application: the approved futuristic SVG orbital (00 FORGEDTITANIUM and streams 01 to 06),
 clickable Level 2 sub-streams, individual agents and five-section agent detail panels.
 
-**It runs entirely in the browser from three static files in `site/`. It has no backend, makes no network requests and holds
-no credentials.** Every status reads Unknown and every connection reads Not connected until genuine agent reports are
-available. No operational figure is invented.
+**It runs entirely in the browser from static files in `site/`. It has no backend and holds no credentials.** Its only network
+request is one anonymous GET of a restricted status document (`status.json`, see [docs/LIVE_STATUS.md](docs/LIVE_STATUS.md)).
+Every status reads Unknown and every connection reads Not connected until genuine agent reports are available. No
+operational figure is invented.
 
 | | |
 |---|---|
 | Status | Built and tested. **Not published.** Reporting is disabled. |
 | Source of truth | `site/` (what is published) |
-| Tests | `npm ci && npm test` (66 automated tests), `npm run test:visual` (14 browser checks and screenshots) |
+| Tests | `npm ci && npm test` (77 automated tests), `npm run test:visual` (14 browser checks and screenshots) |
 | Local preview | `npm run serve` then open the printed address |
 | Publishing | Manual, approval-gated: see [docs/PUBLISHING.md](docs/PUBLISHING.md) |
 

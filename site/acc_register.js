@@ -274,7 +274,7 @@
       },
       "integration": {
         "state": "none",
-        "note": "Reporting is disabled and not connected. This public preview shows no live agent data."
+        "note": "Restricted public view: only the agent state and report times are shown. Task details, costs and run information are never published."
       },
       "controls": {
         "model_permissions": {
@@ -329,7 +329,7 @@
       },
       "integration": {
         "state": "none",
-        "note": "Reporting is disabled and not connected. This public preview shows no live agent data."
+        "note": "Restricted public view: only the agent state and report times are shown. Task details, costs and run information are never published."
       },
       "controls": {
         "model_permissions": {
@@ -378,7 +378,7 @@
       },
       "integration": {
         "state": "none",
-        "note": "Reporting is disabled and not connected. This public preview shows no live agent data."
+        "note": "Restricted public view: only the agent state and report times are shown. Task details, costs and run information are never published."
       },
       "controls": {
         "model_permissions": {
@@ -427,7 +427,7 @@
       },
       "integration": {
         "state": "none",
-        "note": "Reporting is disabled and not connected. This public preview shows no live agent data."
+        "note": "Restricted public view: only the agent state and report times are shown. Task details, costs and run information are never published."
       },
       "controls": {
         "model_permissions": {
@@ -481,7 +481,7 @@
       },
       "integration": {
         "state": "none",
-        "note": "Reporting is disabled and not connected. This public preview shows no live agent data."
+        "note": "Restricted public view: only the agent state and report times are shown. Task details, costs and run information are never published."
       },
       "controls": {
         "model_permissions": {
@@ -528,7 +528,7 @@
       },
       "integration": {
         "state": "none",
-        "note": "Reporting is disabled and not connected. This public preview shows no live agent data."
+        "note": "Restricted public view: only the agent state and report times are shown. Task details, costs and run information are never published."
       },
       "controls": {
         "model_permissions": {
@@ -575,7 +575,7 @@
       },
       "integration": {
         "state": "none",
-        "note": "Reporting is disabled and not connected. This public preview shows no live agent data."
+        "note": "Restricted public view: only the agent state and report times are shown. Task details, costs and run information are never published."
       },
       "controls": {
         "model_permissions": {
@@ -622,7 +622,7 @@
       },
       "integration": {
         "state": "none",
-        "note": "Reporting is disabled and not connected. This public preview shows no live agent data."
+        "note": "Restricted public view: only the agent state and report times are shown. Task details, costs and run information are never published."
       },
       "controls": {
         "model_permissions": {

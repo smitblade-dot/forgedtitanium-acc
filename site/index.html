@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:,">
+<meta name="acc-status-url" content="https://forgedtitanium-acc-service.fly.dev/public/status.json">
 <title>FORGEDTITANIUM | Agent Command Centre</title>
 <style>
 :root{
@@ -253,7 +254,7 @@ table.stages td:first-child{color:#8eb9d4;width:110px}
   </section>
 
   <footer>
-    <div><strong>FORGEDTITANIUM Agent Command Centre, public preview</strong>. Every figure on this page is derived from the agent register. No agent is connected, nothing shown is a live reading, and statuses stay Unknown until genuine agent reports are available.</div>
+    <div><strong>FORGEDTITANIUM Agent Command Centre</strong>. Agent states come only from reports received by the ACC service and are shown in a restricted public view (state and times only). Where no report is available the status is Unknown. Nothing on this page is invented.</div>
     <div>Times shown in Europe/Nicosia (EET/EEST); stored in UTC.</div>
   </footer>
 </div>
@@ -293,7 +294,7 @@ function sv(tag, attrs, ...kids){
   for (const k of kids) if (k) n.append(k);
   return n;
 }
-const STATUS_TEXT = {working:'Working', idle:'Idle', awaiting_approval:'Awaiting approval', failed:'Failed', offline:'Offline', unknown:'Unknown (reported)'};
+const STATUS_TEXT = {working:'Active', idle:'Idle', awaiting_approval:'Awaiting approval', failed:'Failed', offline:'Disconnected', unknown:'Unknown (reported)'};
 const SEV_TEXT = {violation:'Violation', review:'Review', data:'Data', identifier:'Identifier', info:'Info'};
 function statusNode(ev){
   const s = ev ? ev.status : 'none';
@@ -323,7 +324,7 @@ function receivedLine(e){
   const ms = Date.parse(e.received_at_utc), late = e.flags.some(f => f.code === 'DELIVERED_LATE');
   return A.formatNicosia(ms, 'datetime') + (late ? ', delivered late' : '') + (e.delivery && e.delivery.attempts ? ' (buffered, attempt ' + e.delivery.attempts + ')' : '');
 }
-function provenance(e){ return e.authenticated ? 'Stored report, authenticated (key ' + e.key_id + ').' : 'Imported report, source not authenticated.'; }
+function provenance(e){ return e.public ? 'Restricted public view from the ACC service. Task details are not published.' : e.authenticated ? 'Stored report, authenticated (key ' + e.key_id + ').' : 'Imported report, source not authenticated.'; }
 
 /* ---------- clock ---------- */
 function tickClock(){
@@ -508,6 +509,7 @@ function renderOrbitData(sum){
 /* ---------- Side panels ---------- */
 function renderActivity(){
   const box = $('activity'); box.replaceChildren();
+  $('actTitle').querySelector('em').textContent = pubInfo ? 'restricted view' : 'not connected';
   const recent = store.events.slice(0, 6);
   if (!recent.length) { box.append(el('p', {cls:'empty', text:'No agent reports available. Not connected.'})); return; }
   const ul = el('ul', {cls:'rows'});
@@ -528,7 +530,7 @@ function renderApprovals(sum){
   for (const ap of sum.approvals) {
     ul.append(el('li', null,
       el('span', {cls:'when', text:A.formatNicosia(ap.event.ms, 'time')}),
-      el('span', {cls:'what'}, el('b', {text:ap.agent.name}), el('span', {text: ap.detail ? ap.detail.summary + (ap.detail.reference ? ' (' + ap.detail.reference + ')' : '') : 'Details not supplied by agent'}))));
+      el('span', {cls:'what'}, el('b', {text:ap.agent.name}), el('span', {text: ap.detail ? ap.detail.summary + (ap.detail.reference ? ' (' + ap.detail.reference + ')' : '') : 'Details are not published'}))));
   }
   box.append(ul);
   box.append(el('p', {cls:'empty', text:'Display only. Decisions are made outside this dashboard.'}));
@@ -549,23 +551,13 @@ function renderStreams(sum){
 function renderConnections(){
   const ul = $('connections'); ul.replaceChildren();
   for (const n of ['Agent services', 'GitHub integration', 'AI providers', 'Database', 'Automations', 'External APIs'])
-    ul.append(el('li', null, el('span', {text:n}), el('span', {cls:'v', text:'Not connected'})));
+    ul.append(el('li', null, el('span', {text:n}), el('span', {cls:'v', text: n === 'Agent services' && pubInfo ? 'ACC service, restricted view' : 'Not connected'})));
 }
 
 function renderExceptions(sum){
-  $('excCount').textContent = sum.hasData ? sum.violations + ' violation' + (sum.violations === 1 ? '' : 's') + ', ' + sum.reviews + ' for review' : 'no data';
+  $('excCount').textContent = 'not published';
   const box = $('exceptionsShort'); box.replaceChildren();
-  const breaches = sum.allowances.flatMap(x => x.usage.breaches.map(b => ({agent:x.agent, b})));
-  for (const x of breaches) box.append(el('p', {cls:'empty', style:'color:var(--sev-violation)', text:'Allowance breach: ' + x.agent.name + ', ' + x.b.kind + ' ' + x.b.period + ', ' + eur(x.b.total) + ' against ' + eur(x.b.limit)}));
-  for (const r of A.registerIssues()) box.append(el('p', {cls:'empty', style:'color:var(--sev-review)', text:'Register: ' + r.agent + ', ' + r.issue}));
-  const ex = sum.exceptions.slice(0, 5);
-  if (!ex.length) { if (!breaches.length) box.append(el('p', {cls:'empty', text: sum.hasData ? 'No routing or data exceptions in reports.' : 'No agent reports to check. Not connected.'})); return; }
-  const ul = el('ul', {cls:'rows'});
-  for (const e of ex) {
-    ul.append(el('li', null, el('span', {cls:'when', text:A.formatNicosia(e.ms, 'time')}),
-      el('span', {cls:'what'}, el('b', {text:agentByKey(e.agent_key).name}), chips(e.flags.filter(f => f.severity !== 'identifier'), false))));
-  }
-  box.append(ul);
+  box.append(el('p', {cls:'empty', text:'Routing and data exceptions are reviewed privately and are not published in this view.'}));
 }
 
 /* ---------- Agent strip ---------- */
@@ -674,7 +666,7 @@ function drawAgent(){
       cell('Development position (register)', a.position),
       cell('Last report', evs.length ? A.formatNicosia(evs[0].ms, 'datetime') : 'None received'),
       cell('Reports this session', String(evs.length)),
-      cell('Live monitoring', 'Not connected')));
+      cell('Live monitoring', evs.length ? 'Reports via ACC service (restricted view)' : 'Not connected')));
     const ig = a.integration || {state:'none'};
     c.append(el('h3', {cls:'dh', text:'Reporting integration'}));
     c.append(el('p', {cls:'empty', text:ig.note || 'No reporting integration.'}));
@@ -690,12 +682,12 @@ function drawAgent(){
         cell('Reported status', STATUS_TEXT[cur.status]),
         cell('Task', cur.task || 'Not supplied'),
         cell('Reported at', A.formatNicosia(cur.ms, 'full')),
-        cell('Stored (UTC)', cur.timestamp_utc),
+        cell(cur.public ? 'Time zone' : 'Stored (UTC)', cur.public ? 'Europe/Nicosia (EET or EEST)' : cur.timestamp_utc),
         cell('Execution mode', cur.dry_run === null ? 'Not stated' : cur.dry_run ? 'Dry run' : 'Live (non-dry-run)'),
-        cell('Model tier', cur.model_tier || 'Not stated'),
-        cell('Escalation reason', cur.escalation_reason || 'None recorded'),
-        cell('Reported cost', cur.cost_eur === null ? (cur.cost_usd_estimated ? 'USD ' + cur.cost_usd_estimated + ' estimate, not converted' : 'Not supplied') : eur(cur.cost_eur) + ' (' + cur.cost_basis + ')'),
-        cell('Run reference', cur.run_ref || 'Not supplied'),
+        cell('Model tier', cur.public ? 'Not published' : cur.model_tier || 'Not stated'),
+        cell('Escalation reason', cur.public ? 'Not published' : cur.escalation_reason || 'None recorded'),
+        cell('Reported cost', cur.public ? 'Not published' : cur.cost_eur === null ? (cur.cost_usd_estimated ? 'USD ' + cur.cost_usd_estimated + ' estimate, not converted' : 'Not supplied') : eur(cur.cost_eur) + ' (' + cur.cost_basis + ')'),
+        cell('Run reference', cur.public ? 'Not published' : cur.run_ref || 'Not supplied'),
         cell('Received by ACC', receivedLine(cur))));
       if (cur.flags.length) c.append(el('div', {style:'margin-top:10px'}, chips(cur.flags, true)));
     }
@@ -765,12 +757,64 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && openStreamId) closeStream();
 });
 
+/* ---------- Restricted public status (ACC-R014) ---------- */
+const PUB_SOURCE = 'acc-public-status';
+const PUB_STATUS = {active:'working', idle:'idle', failed:'failed', disconnected:'offline', awaiting_approval:'awaiting_approval', unknown:'unknown'};
+const PUB_TS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
+let pubInfo = null;
+const FEED_STALE_MS = 15 * 60 * 1000;   // feed is cached 30 s and polled every 60 s: 15 minutes without a refresh means the feed itself is down
+function statusUrl(){
+  const m = document.querySelector('meta[name="acc-status-url"]'), u = m && m.content ? m.content.trim() : 'status.json';
+  return /^(https:\/\/[a-z0-9.-]+(:\d{1,5})?\/[A-Za-z0-9._~\/-]+|[A-Za-z0-9._-]+)$/.test(u) ? u : 'status.json';
+}
+/* Strict allowlist: any unexpected field, type or value means the whole document is ignored. Never rendered as markup. */
+function validPublic(d){
+  const only = (o, ks) => o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === ks.length && ks.every(k => k in o);
+  if (!only(d, ['schema', 'generated_at_utc', 'window_hours', 'working_timeout_minutes', 'agents', 'note']) && !only(d, ['schema', 'generated_at_utc', 'window_hours', 'working_timeout_minutes', 'agents'])) return false;
+  if (d.schema !== 'acc-public-status/1' || !(d.generated_at_utc === null || PUB_TS.test(d.generated_at_utc))) return false;
+  if (!Number.isInteger(d.window_hours) || !Number.isInteger(d.working_timeout_minutes) || d.working_timeout_minutes < 1 || !Array.isArray(d.agents) || d.agents.length > 50) return false;
+  if ('note' in d && (typeof d.note !== 'string' || d.note.length > 300)) return false;
+  return d.agents.every(a => only(a, ['agent_id', 'name', 'verification', 'state', 'state_reason', 'as_of_utc', 'last_report_utc', 'reports_24h', 'history'])
+    && (a.agent_id === null || /^03AA-[0-9]{2}_[A-Za-z0-9_]{1,80}$/.test(a.agent_id)) && typeof a.name === 'string' && a.name.length <= 80
+    && ['verified', 'provisional'].includes(a.verification) && a.state in PUB_STATUS && ['reported', 'no_report', 'stale', 'no_completion', 'provisional'].includes(a.state_reason)
+    && [a.as_of_utc, a.last_report_utc].every(t => t === null || PUB_TS.test(t)) && Number.isInteger(a.reports_24h) && Array.isArray(a.history) && a.history.length <= 10
+    && a.history.every(h => only(h, ['at_utc', 'state', 'mode', 'delivered_late']) && PUB_TS.test(h.at_utc) && h.state in PUB_STATUS && [null, 'dry_run', 'live'].includes(h.mode) && typeof h.delivered_late === 'boolean'));
+}
+function applyPublicStatus(doc){
+  store.events.length = 0; store.rejected.length = 0; store.keys.clear(); store.seq = 0; pubInfo = null;
+  if (validPublic(doc)) {
+    const now = nowFn();
+    for (const a of doc.agents) {
+      const reg = A.REGISTER.find(r => r.code && r.code === a.agent_id);
+      if (!reg) continue;
+      const hist = a.history.slice().sort((x, y) => Date.parse(x.at_utc) - Date.parse(y.at_utc));
+      hist.forEach((h, i) => {
+        let status = PUB_STATUS[h.state];
+        if (i === hist.length - 1 && status === 'working' && now - Date.parse(h.at_utc) > doc.working_timeout_minutes * 60000) status = 'unknown';
+        const raw = {agent_id: a.agent_id, status, timestamp: h.at_utc, event_id: 'pub-' + a.agent_id + '-' + h.at_utc};
+        if (h.mode) raw.dry_run = h.mode === 'dry_run';
+        A.ingestReport(store, {version:'1.1', events:[raw]}, now, PUB_SOURCE, {received_at_utc: h.at_utc});
+      });
+    }
+    for (const e of store.events) { e.flags = []; e.public = true; }
+    if (store.events.length) pubInfo = {generated: doc.generated_at_utc};
+  }
+  render();
+  return !!pubInfo;
+}
+function loadPublicStatus(){
+  if (document.hidden || typeof fetch !== 'function') return Promise.resolve();
+  return fetch(statusUrl(), {cache:'no-store', credentials:'omit'}).then(r => r.ok ? r.json() : null).then(doc => { if (doc) applyPublicStatus(doc); }).catch(() => {});
+}
+
 /* ---------- Render ---------- */
 function render(){
   const sum = A.summarise(store, nowFn());
   $('notice').textContent = sum.hasData
-    ? 'Showing imported agent reports only. No live agent connection; statuses older than 24 hours revert to unknown.'
-    : 'Public preview. No live agent connection: statuses are Unknown and telemetry is Not connected until genuine agent reports are available.';
+    ? 'Restricted public view of reports received by the ACC service' + (pubInfo && pubInfo.generated ? ' (generated ' + A.formatNicosia(Date.parse(pubInfo.generated), 'time') + ')' : '') + '. Only state and report times are shown; statuses older than 24 hours revert to Unknown.'
+    : 'No agent reports available. Statuses are Unknown and telemetry is Not connected until genuine agent reports are available.';
+  if (pubInfo && pubInfo.generated && nowFn() - Date.parse(pubInfo.generated) > FEED_STALE_MS)
+    $('notice').textContent += ' The status feed has not refreshed since ' + A.formatNicosia(Date.parse(pubInfo.generated), 'time') + ', so these are the last known reports.';
   renderKpis(sum); renderOrbitData(sum); renderActivity(); renderApprovals(sum); renderStreams(sum);
   renderConnections(); renderExceptions(sum); renderAgents(sum);
   if (openStreamId) openStream(openStreamId, false);
@@ -779,11 +823,13 @@ function render(){
 }
 
 render();
+loadPublicStatus();
 setInterval(tickClock, 1000);
 setInterval(render, 60000);
+setInterval(loadPublicStatus, 60000);
 
 /* Test hooks */
-window.ACC_APP = { render, setClock(fn){ nowFn = fn; render(); }, openAgent, openStream };
+window.ACC_APP = { render, setClock(fn){ nowFn = fn; render(); }, openAgent, openStream, applyPublicStatus };
 })();
 </script>
 </body>

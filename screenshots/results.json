@@ -19,7 +19,7 @@
     {
       "check": "desktop: 01 above core, 04 below, 02/03 right, 05/06 left (approved layout)",
       "ok": true,
-      "detail": "{\"00\":[720,419],\"01\":[720,253],\"02\":[859,334],\"03\":[859,495],\"04\":[720,575],\"05\":[581,495],\"06\":[581,334]}"
+      "detail": "{\"00\":[720,430],\"01\":[720,264],\"02\":[859,345],\"03\":[859,505],\"04\":[720,586],\"05\":[581,505],\"06\":[581,345]}"
     },
     {
       "check": "desktop: Level 2 detail opens with homed agents",
@@ -44,7 +44,7 @@
     {
       "check": "desktop: only static files requested",
       "ok": true,
-      "detail": "http://127.0.0.1:42637/, http://127.0.0.1:42637/acc_register.js, http://127.0.0.1:42637/acc_core.js"
+      "detail": "http://127.0.0.1:46815/, http://127.0.0.1:46815/acc_register.js, http://127.0.0.1:46815/acc_core.js, http://127.0.0.1:46815/status.json"
     },
     {
       "check": "desktop: no console errors or warnings",
