@@ -509,7 +509,7 @@ function renderOrbitData(sum){
 /* ---------- Side panels ---------- */
 function renderActivity(){
   const box = $('activity'); box.replaceChildren();
-  $('actTitle').querySelector('em').textContent = pubInfo ? 'restricted public view' : 'not connected';
+  $('actTitle').querySelector('em').textContent = pubInfo ? 'restricted view' : 'not connected';
   const recent = store.events.slice(0, 6);
   if (!recent.length) { box.append(el('p', {cls:'empty', text:'No agent reports available. Not connected.'})); return; }
   const ul = el('ul', {cls:'rows'});

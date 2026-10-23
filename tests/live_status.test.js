@@ -39,7 +39,7 @@ test('active, idle, failed, disconnected and unknown agents are distinguished on
   const dom = await load(); const w = dom.window, d = w.document;
   w.ACC_APP.applyPublicStatus(doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'active', 10), entry(BUILDER, 'Country Intelligence Builder', 'failed', 20),
     entry(CONTROLLER, 'Production Controller TI', 'disconnected', 30)]));
-  assert.match(d.querySelector('#actTitle').textContent, /restricted public view/);
+  assert.match(d.querySelector('#actTitle').textContent, /restricted view/);
   assert.match(card(d, 'TI Operations Director (Master Agent)').textContent, /Active/);
   assert.match(card(d, 'Country Intelligence Builder').textContent, /Failed/);
   assert.match(card(d, 'Production Controller TI').textContent, /Disconnected/);
