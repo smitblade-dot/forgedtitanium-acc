@@ -682,7 +682,7 @@ function drawAgent(){
         cell('Reported status', STATUS_TEXT[cur.status]),
         cell('Task', cur.task || 'Not supplied'),
         cell('Reported at', A.formatNicosia(cur.ms, 'full')),
-        cell('Stored (UTC)', cur.timestamp_utc),
+        cell(cur.public ? 'Time zone' : 'Stored (UTC)', cur.public ? 'Europe/Nicosia (EET or EEST)' : cur.timestamp_utc),
         cell('Execution mode', cur.dry_run === null ? 'Not stated' : cur.dry_run ? 'Dry run' : 'Live (non-dry-run)'),
         cell('Model tier', cur.public ? 'Not published' : cur.model_tier || 'Not stated'),
         cell('Escalation reason', cur.public ? 'Not published' : cur.escalation_reason || 'None recorded'),
@@ -762,6 +762,7 @@ const PUB_SOURCE = 'acc-public-status';
 const PUB_STATUS = {active:'working', idle:'idle', failed:'failed', disconnected:'offline', awaiting_approval:'awaiting_approval', unknown:'unknown'};
 const PUB_TS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
 let pubInfo = null;
+const FEED_STALE_MS = 15 * 60 * 1000;   // feed is cached 30 s and polled every 60 s: 15 minutes without a refresh means the feed itself is down
 function statusUrl(){
   const m = document.querySelector('meta[name="acc-status-url"]'), u = m && m.content ? m.content.trim() : 'status.json';
   return /^(https:\/\/[a-z0-9.-]+(:\d{1,5})?\/[A-Za-z0-9._~\/-]+|[A-Za-z0-9._-]+)$/.test(u) ? u : 'status.json';
@@ -812,6 +813,8 @@ function render(){
   $('notice').textContent = sum.hasData
     ? 'Restricted public view of reports received by the ACC service' + (pubInfo && pubInfo.generated ? ' (generated ' + A.formatNicosia(Date.parse(pubInfo.generated), 'time') + ')' : '') + '. Only state and report times are shown; statuses older than 24 hours revert to Unknown.'
     : 'No agent reports available. Statuses are Unknown and telemetry is Not connected until genuine agent reports are available.';
+  if (pubInfo && pubInfo.generated && nowFn() - Date.parse(pubInfo.generated) > FEED_STALE_MS)
+    $('notice').textContent += ' The status feed has not refreshed since ' + A.formatNicosia(Date.parse(pubInfo.generated), 'time') + ', so these are the last known reports.';
   renderKpis(sum); renderOrbitData(sum); renderActivity(); renderApprovals(sum); renderStreams(sum);
   renderConnections(); renderExceptions(sum); renderAgents(sum);
   if (openStreamId) openStream(openStreamId, false);

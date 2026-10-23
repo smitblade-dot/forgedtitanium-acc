@@ -173,3 +173,51 @@ test('each agent shows identity, operating stream, status, last report time and 
   const sel = d.querySelector('#agentFilter'); sel.value = '01'; sel.dispatchEvent(new w.Event('change'));
   assert.ok(card(d, 'Production Controller TI')); assert.equal(card(d, 'Agent SQE'), undefined);
 });
+
+test('a status feed that stops refreshing is called out, with the time labelled', async () => {
+  const dom = await load(); const w = dom.window, d = w.document;
+  const stale = doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'idle', 30)]);
+  stale.generated_at_utc = ago(20);
+  w.ACC_APP.applyPublicStatus(stale);
+  assert.match(d.querySelector('#notice').textContent, /The status feed has not refreshed since \d{2}:\d{2} EEST/);
+  w.ACC_APP.applyPublicStatus(doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'idle', 3)]));
+  assert.doesNotMatch(d.querySelector('#notice').textContent, /has not refreshed/);
+});
+
+test('every displayed time is Europe/Nicosia and explicitly labelled EEST in summer and EET after the 25 Oct 2026 change', async () => {
+  const visible = d => { const c = d.body.cloneNode(true); c.querySelectorAll('script,style,.clock,#agentModal').forEach(n => n.remove()); return c.textContent; };
+  const check = async (nowIso, label) => {
+    const now = Date.parse(nowIso);
+    const ago2 = m => new Date(now - m * 60000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+    const dom = await load(); const w = dom.window, d = w.document;
+    w.ACC_APP.setClock(() => now);
+    const mk = (agent, name, state, m) => Object.assign(entry(agent, name, state, m), { history: [{ at_utc: ago2(m), state, mode: 'dry_run', delivered_late: false }, { at_utc: ago2(m + 40), state: 'active', mode: null, delivered_late: false }] });
+    const dd = { schema: 'acc-public-status/1', generated_at_utc: ago2(1), window_hours: 24, working_timeout_minutes: 120, agents: [mk(MASTER, 'TI Operations Director (Master Agent)', 'failed', 10), mk(BUILDER, 'Country Intelligence Builder', 'idle', 20), mk(CONTROLLER, 'Production Controller TI', 'idle', 30)] };
+    w.ACC_APP.applyPublicStatus(dd);
+    for (const name of ['TI Operations Director (Master Agent)', 'Country Intelligence Builder', 'Production Controller TI']) {
+      click(w, card(d, name));
+      for (const t of [...d.querySelectorAll('#detailTabs button')].slice(0, 3)) { click(w, t); }
+      const text = d.querySelector('#detailContent').textContent + ' ' + d.querySelector('#detailStatus').textContent;
+      click(w, [...d.querySelectorAll('#detailTabs button')][1]);
+      const cur = d.querySelector('#detailContent').textContent + d.querySelector('#detailStatus').textContent;
+      for (const t of [text, cur]) for (const m of t.matchAll(/\b\d{2}:\d{2}(?::\d{2})?(?![\d:])(?! (?:EEST|EET))/g)) assert.fail('unlabelled time ' + m[0] + ' in: ' + t.slice(Math.max(0, m.index - 40), m.index + 20));
+      click(w, d.querySelector('#detailClose'));
+    }
+    const page = visible(d);
+    assert.ok(page.includes(label), 'expected label ' + label + ' on the page');
+    for (const m of page.matchAll(/\b\d{2}:\d{2}(?::\d{2})?(?![\d:])(?! (?:EEST|EET))/g)) assert.fail('unlabelled time ' + m[0] + ' near: ' + page.slice(Math.max(0, m.index - 40), m.index + 20));
+    assert.equal(page.includes(label === 'EEST' ? ' EET' : ' EEST'), false, 'wrong zone label');
+  };
+  await check('2026-10-23T12:00:00Z', 'EEST');
+  await check('2026-10-26T12:00:00Z', 'EET');
+});
+
+test('exactly one registration per verified agent code, and the Haiku monitor is not a separate agent', () => {
+  const R = require('../site/acc_register.js');
+  const codes = R.AGENTS.filter(a => a.code).map(a => a.code);
+  assert.deepEqual(codes.sort(), [BUILDER, CONTROLLER, MASTER].sort());
+  assert.equal(new Set(R.AGENTS.map(a => a.name)).size, R.AGENTS.length, 'no duplicate names');
+  assert.equal(new Set(R.AGENTS.map(a => a.interim_id)).size, R.AGENTS.length, 'no duplicate interim ids');
+  assert.ok(!R.AGENTS.some(a => /haiku|monitor/i.test(a.name)), 'the monitor is a function of the Master Agent, not its own agent');
+  assert.match(R.AGENTS.find(a => a.code === MASTER).responsibilities.join(' '), /Haiku/);
+});
