@@ -1,0 +1,8 @@
+{
+  "schema": "acc-public-status/1",
+  "generated_at_utc": null,
+  "window_hours": 24,
+  "working_timeout_minutes": 120,
+  "agents": [],
+  "note": "No agent reports have been received. All agent states are Unknown."
+}

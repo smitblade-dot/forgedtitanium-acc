@@ -12,7 +12,8 @@ const opened = [];
 test.after(() => opened.forEach(d => d.window.close())); // a failing test must never leave the page clock running
 
 async function load() {
-  const dom = await JSDOM.fromFile(INDEX, { runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true });
+  const dom = await JSDOM.fromFile(INDEX, { runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true,
+    beforeParse(w) { w.fetch = () => Promise.resolve({ ok: false, json: async () => null }); } });   // no network in tests
   opened.push(dom);
   await new Promise(r => dom.window.addEventListener('load', r));
   dom.window.ACC_APP.setClock(() => FIXED_NOW);
@@ -86,7 +87,7 @@ test('all eight agents open with five detail sections and an unknown status', as
     }
     click(w, d.querySelector('#detailTabs button'));
     assert.match(d.querySelector('#detailStatus').textContent, /No live connection/);
-    assert.match(d.querySelector('#detailContent').textContent, /Reporting is disabled and not connected/);
+    assert.match(d.querySelector('#detailContent').textContent, /Restricted public view: only the agent state and report times are shown/);
     click(w, d.querySelector('#detailClose'));
   }
   dom.window.close();

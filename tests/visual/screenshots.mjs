@@ -70,7 +70,7 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
 
   const external = requests.filter(u => !u.startsWith(base));
   check('desktop: zero requests outside the page origin', external.length === 0, external.join(', '));
-  check('desktop: only static files requested', requests.every(u => /\/(index\.html|acc_core\.js|acc_register\.js|)$/.test(new URL(u).pathname)), requests.join(', '));
+  check('desktop: only static files requested', requests.every(u => /\/(index\.html|acc_core\.js|acc_register\.js|status\.json|)$/.test(new URL(u).pathname)), requests.join(', '));
   check('desktop: no console errors or warnings', problems.length === 0, problems.join(' | '));
   await ctx.close();
 }

@@ -44,7 +44,7 @@
     {
       "check": "desktop: only static files requested",
       "ok": true,
-      "detail": "http://127.0.0.1:42637/, http://127.0.0.1:42637/acc_register.js, http://127.0.0.1:42637/acc_core.js"
+      "detail": "http://127.0.0.1:35897/, http://127.0.0.1:35897/acc_register.js, http://127.0.0.1:35897/acc_core.js, http://127.0.0.1:35897/status.json"
     },
     {
       "check": "desktop: no console errors or warnings",

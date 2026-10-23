@@ -9,9 +9,10 @@ The published frontend (`site/`) was derived from the private ACC-R011 applicati
 | Per-agent reporting integration details (branches, commits, workflow names, key and secret names) | Operational detail |
 | Expenditure allowances, recorded approvals, approver names | Governance records, not public |
 | Google Fonts requests | The page makes zero third-party requests |
+| Routing and data exceptions, cost, model tier, run references, task names, approval details | Shown as Not published; the public status document cannot carry them |
 | Internal hosting plan, deployment kit, signing client | Not part of the frontend |
 
-Enforced by `tests/public_safety.test.js` (file allowlist, no network or storage APIs, no external URLs, forbidden-term scan,
+Enforced by `tests/public_safety.test.js` (file allowlist, exactly one permitted request site, no storage APIs, no external URLs, forbidden-term scan,
 credential-pattern scan of the whole repository, publish workflow gating) and by the zero-external-request check in `tests/visual/screenshots.mjs`.
 
 ## Data honesty

@@ -9,17 +9,23 @@ const files = fs.readdirSync(SITE, { recursive: true }).filter(f => fs.statSync(
 const text = f => fs.readFileSync(path.join(SITE, f), 'utf8');
 
 test('published file set is exactly the public-safe frontend', () => {
-  assert.deepEqual(files, ['.nojekyll', 'acc_core.js', 'acc_register.js', 'index.html']);
+  assert.deepEqual(files, ['.nojekyll', 'acc_core.js', 'acc_register.js', 'index.html', 'status.json']);
 });
 
 test('no network calls, storage or third-party requests in shipped code', () => {
   for (const f of files.filter(f => /\.(js|html)$/.test(f))) {
     const t = text(f);
-    for (const re of [/\bfetch\s*\(/, /XMLHttpRequest/, /WebSocket/, /sendBeacon/, /EventSource/, /localStorage/, /sessionStorage/, /indexedDB/, /document\.cookie/, /importScripts/])
+    for (const re of [/XMLHttpRequest/, /WebSocket/, /sendBeacon/, /EventSource/, /localStorage/, /sessionStorage/, /indexedDB/, /document\.cookie/, /importScripts/])
       assert.doesNotMatch(t, re, f + ' must not match ' + re);
     const urls = (t.match(/https?:\/\/[^\s'"`)<>]+/g) || []).filter(u => !/^http:\/\/www\.w3\.org\/(2000\/svg|1999\/xlink)$/.test(u));
     assert.deepEqual(urls, [], f + ' references external URLs');
   }
+  // The one permitted request: GET of the restricted public status document, anonymous, no cookies.
+  const fetches = text('index.html').match(/\bfetch\s*\(/g) || [];
+  assert.equal(fetches.length, 1, 'exactly one request site');
+  assert.match(text('index.html'), /fetch\(statusUrl\(\), \{cache:'no-store', credentials:'omit'\}\)/);
+  assert.doesNotMatch(text('acc_core.js') + text('acc_register.js'), /\bfetch\s*\(/);
+  assert.match(text('index.html'), /<meta name="acc-status-url" content="status\.json">/, 'committed status location is same-origin');
   assert.doesNotMatch(text('index.html'), /<link[^>]+href="https?:/);
   assert.doesNotMatch(text('index.html'), /<script[^>]+src="https?:/);
 });
