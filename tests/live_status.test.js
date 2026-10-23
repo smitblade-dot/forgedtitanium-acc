@@ -120,12 +120,12 @@ test('a document naming an agent the register does not know adds nothing', async
   assert.equal(w.ACC_APP.applyPublicStatus(doc([entry('03AA-04_Invented_Agent', 'Invented', 'active', 5)])), false);
 });
 
-test('the page requests only the same-origin status document, anonymously', async () => {
+test('the page requests only the approved status document, anonymously', async () => {
   const calls = [];
   const dom = await load((url, init) => { calls.push([url, init]); return Promise.resolve({ ok: true, json: async () => doc([entry(CONTROLLER, 'Production Controller TI', 'idle', 3)]) }); });
   await new Promise(r => setTimeout(r, 50));
   assert.equal(calls.length >= 1, true);
-  assert.equal(calls[0][0], 'status.json');
+  assert.equal(calls[0][0], 'https://forgedtitanium-acc-service.fly.dev/public/status.json');   // the one approved address
   assert.equal(JSON.stringify(calls[0][1]), JSON.stringify({ cache: 'no-store', credentials: 'omit' }));
   assert.match(card(dom.window.document, 'Production Controller TI').textContent, /Idle/);
   assert.match(dom.window.document.querySelector('#connections').textContent, /Agent servicesACC service, restricted view/);
@@ -135,7 +135,7 @@ test('a configured status address must be same-origin relative or an https URL; 
   for (const [content, want] of [['status.json', 'status.json'], ['https://acc.example.org/public/status.json', 'https://acc.example.org/public/status.json'],
     ['http://evil.example/status.json', 'status.json'], ['javascript:alert(1)', 'status.json'], ['//evil.example/x', 'status.json'], ['https://a.com@evil.com/x', 'status.json'], ['', 'status.json']]) {
     const calls = [];
-    const html = fs.readFileSync(INDEX, 'utf8').replace('content="status.json"', 'content="' + content + '"');
+    const html = fs.readFileSync(INDEX, 'utf8').replace('content="https://forgedtitanium-acc-service.fly.dev/public/status.json"', 'content="' + content + '"');
     const dom = new JSDOM(html, { runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true, url: 'file://' + INDEX,
       beforeParse(w) { w.fetch = u => { calls.push(u); return Promise.resolve({ ok: false, json: async () => null }); }; } });
     opened.push(dom);

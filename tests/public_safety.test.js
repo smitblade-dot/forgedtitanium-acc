@@ -7,6 +7,8 @@ const path = require('node:path');
 const SITE = path.join(__dirname, '..', 'site');
 const files = fs.readdirSync(SITE, { recursive: true }).filter(f => fs.statSync(path.join(SITE, f)).isFile()).sort();
 const text = f => fs.readFileSync(path.join(SITE, f), 'utf8');
+// The single approved external address: the ACC service's restricted public status document. Nothing else may be referenced.
+const APPROVED_META = '<meta name="acc-status-url" content="https://forgedtitanium-acc-service.fly.dev/public/status.json">';
 
 test('published file set is exactly the public-safe frontend', () => {
   assert.deepEqual(files, ['.nojekyll', 'acc_core.js', 'acc_register.js', 'index.html', 'status.json']);
@@ -17,7 +19,9 @@ test('no network calls, storage or third-party requests in shipped code', () => 
     const t = text(f);
     for (const re of [/XMLHttpRequest/, /WebSocket/, /sendBeacon/, /EventSource/, /localStorage/, /sessionStorage/, /indexedDB/, /document\.cookie/, /importScripts/])
       assert.doesNotMatch(t, re, f + ' must not match ' + re);
-    const urls = (t.match(/https?:\/\/[^\s'"`)<>]+/g) || []).filter(u => !/^http:\/\/www\.w3\.org\/(2000\/svg|1999\/xlink)$/.test(u));
+    // The only external address permitted anywhere is the approved status document, and only as the content of the status meta tag.
+    const scanned = f === 'index.html' ? t.replace(APPROVED_META, '') : t;
+    const urls = (scanned.match(/https?:\/\/[^\s'"`)<>]+/g) || []).filter(u => !/^http:\/\/www\.w3\.org\/(2000\/svg|1999\/xlink)$/.test(u));
     assert.deepEqual(urls, [], f + ' references external URLs');
   }
   // The one permitted request: GET of the restricted public status document, anonymous, no cookies.
@@ -25,7 +29,8 @@ test('no network calls, storage or third-party requests in shipped code', () => 
   assert.equal(fetches.length, 1, 'exactly one request site');
   assert.match(text('index.html'), /fetch\(statusUrl\(\), \{cache:'no-store', credentials:'omit'\}\)/);
   assert.doesNotMatch(text('acc_core.js') + text('acc_register.js'), /\bfetch\s*\(/);
-  assert.match(text('index.html'), /<meta name="acc-status-url" content="status\.json">/, 'committed status location is same-origin');
+  assert.equal(text('index.html').split(APPROVED_META).length - 1, 1, 'the status location is exactly the approved ACC service address');
+  assert.equal((text('index.html').match(/<meta name="acc-status-url"/g) || []).length, 1, 'one status meta tag');
   assert.doesNotMatch(text('index.html'), /<link[^>]+href="https?:/);
   assert.doesNotMatch(text('index.html'), /<script[^>]+src="https?:/);
 });
