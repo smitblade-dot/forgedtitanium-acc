@@ -1,0 +1,29 @@
+name: ACC tests and visual checks
+# Runs on every change. It never publishes anything.
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Automated tests (public-safety, register, core, interactive UI)
+        run: npm test
+      - name: Visual checks and screenshots
+        env:
+          ACC_CHROME: /usr/bin/google-chrome
+        run: npm run test:visual
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: acc-screenshots
+          path: screenshots/

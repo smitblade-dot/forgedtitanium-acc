@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>FORGEDTITANIUM | Agent Command Centre</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#020813;--bg-2:#051326;--panel:#071a2ecc;--line:#1f4a70;--line-hi:#56cfff;
+  --ink:#e8f6ff;--ink-2:#a9c6dc;--ink-3:#7f9db6;
+  --s00:#62cfff;--s01:#17aaff;--s02:#ffab36;--s03:#a76bff;--s04:#ffd166;--s05:#3ef3a1;--s06:#ff5abb;
+  --st-working:#5fd4ff;--st-idle:#9fb7cc;--st-awaiting:#ffc46a;--st-failed:#ff8a5c;--st-offline:#6f8396;--st-unknown:#7f9db6;
+  --sev-violation:#ff7a59;--sev-review:#ffc46a;--sev-data:#c49bff;--sev-identifier:#6edbff;--sev-info:#8aa3b8;
+  --display:'Rajdhani','Bahnschrift','Segoe UI',Arial,sans-serif;
+  --body:'Inter','Segoe UI',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
+button,select,input{font:inherit}
+:focus-visible{outline:2px solid var(--line-hi);outline-offset:2px}
+.wrap{max-width:1680px;margin:0 auto;padding:16px 18px 28px;
+  background:radial-gradient(ellipse 70% 55% at 50% 42%,#0a2950 0%,#041024 55%,var(--bg) 100%)}
+
+/* Top bar */
+.topbar{display:grid;grid-template-columns:minmax(220px,auto) 1fr auto;gap:18px;align-items:center}
+.brand h1{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(24px,2.4vw,36px);letter-spacing:.06em;line-height:1}
+.brand h1 small{font-size:.4em;vertical-align:super;letter-spacing:.08em;color:var(--ink-2)}
+.brand p{margin:4px 0 0;font-family:var(--display);font-weight:600;font-size:clamp(14px,1.2vw,18px);letter-spacing:.2em;color:var(--s00)}
+.kpis{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));border:1px solid var(--line);border-radius:12px;background:#06162acc;overflow:hidden}
+.kpi{padding:9px 11px;border-left:1px solid var(--line);min-width:0}
+.kpi:first-child{border-left:0}
+.kpi b{display:block;font-family:var(--display);font-size:clamp(16px,1.35vw,22px);font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi span{display:block;font-size:11px;color:var(--ink-3);line-height:1.25}
+.kpi b.nodata{color:var(--ink-3);font-weight:600;font-size:clamp(13px,1vw,16px);white-space:normal;line-height:1.15;padding:3px 0 2px}
+.clock{text-align:right;font-family:var(--display)}
+.clock .d{font-size:13px;color:var(--ink-2);font-weight:600;letter-spacing:.05em}
+.clock .t{font-size:clamp(22px,2vw,30px);font-weight:700;letter-spacing:.04em;line-height:1.05}
+.clock .z{font-size:12px;color:var(--s00);font-weight:600;letter-spacing:.06em}
+.notice{margin:12px 0 0;padding:7px 12px;border:1px solid #6b5426;border-radius:8px;background:#1a1307cc;color:#ffd48a;font-size:12.5px}
+
+/* Main deck */
+.deck{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr) minmax(250px,300px);gap:16px;margin-top:14px;align-items:start}
+.col{display:grid;gap:14px}
+.box{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:13px 14px;backdrop-filter:blur(6px)}
+.box h2{margin:0 0 8px;font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:.06em;color:#bfe9ff;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.box h2 em{font-style:normal;font-family:var(--body);font-size:11px;font-weight:500;letter-spacing:0;color:var(--ink-3)}
+.box.warn{border-color:#6b5426}
+.box.warn h2{color:#ffd48a}
+.empty{color:var(--ink-3);font-size:12.5px;margin:4px 0}
+.rows{list-style:none;margin:0;padding:0}
+.rows li{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;padding:8px 0;border-top:1px solid #17385a;font-size:12.5px}
+.rows li:first-child{border-top:0}
+.rows .when{color:var(--ink-3);font-size:11.5px;white-space:nowrap}
+.rows .what b{display:block;font-weight:600}
+.rows .what span{color:var(--ink-2)}
+.kv{list-style:none;margin:0;padding:0}
+.kv li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #17385a;font-size:12.5px}
+.kv li:first-child{border-top:0}
+.kv .v{color:var(--ink-3);text-align:right}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px;background:var(--st-unknown)}
+.st{font-weight:600}
+.st[data-s=working]{color:var(--st-working)}.st[data-s=idle]{color:var(--st-idle)}.st[data-s=awaiting_approval]{color:var(--st-awaiting)}
+.st[data-s=failed]{color:var(--st-failed)}.st[data-s=offline]{color:var(--st-offline)}.st[data-s=unknown],.st[data-s=none]{color:var(--st-unknown)}
+.dot[data-s=working]{background:var(--st-working);box-shadow:0 0 8px var(--st-working)}.dot[data-s=idle]{background:var(--st-idle)}
+.dot[data-s=awaiting_approval]{background:var(--st-awaiting)}.dot[data-s=failed]{background:var(--st-failed)}.dot[data-s=offline]{background:var(--st-offline)}
+.dot[data-s=none],.dot[data-s=unknown]{background:transparent;border:1px solid var(--st-unknown)}
+.chip{display:inline-block;margin:3px 4px 0 0;padding:1px 7px;border-radius:9px;font-size:10.5px;font-weight:600;border:1px solid currentColor}
+.chip[data-sev=violation]{color:var(--sev-violation)}.chip[data-sev=review]{color:var(--sev-review)}.chip[data-sev=data]{color:var(--sev-data)}
+.chip[data-sev=identifier]{color:var(--sev-identifier)}.chip[data-sev=ok]{color:#7fe0b4}.chip[data-sev=info]{color:var(--sev-info)}
+
+/* Orbital */
+.orbital{position:relative;min-width:0}
+.orbital svg{display:block;width:100%;height:auto}
+.node{cursor:pointer}
+.node .halo{transition:stroke-width .2s,opacity .2s}
+.node:hover .halo,.node:focus-visible .halo,.node.active .halo{stroke-width:5;opacity:1}
+.node:focus{outline:none}
+.node:focus-visible .ring{stroke:#fff}
+.sublabel{font-family:var(--body);font-size:12.5px;fill:#cfe6f5}
+.sublink{cursor:pointer}
+.sublink:hover,.sublink:focus-visible{fill:#fff;text-decoration:underline;outline:none}
+.panel .sublink[aria-pressed=true]{color:#fff;font-weight:700}
+.panel .subdetail{margin-top:10px;padding:10px 12px;border:1px solid #335674;border-radius:10px;background:#0d2540}
+.subnum{font-family:var(--display);font-weight:700;font-size:13px}
+.nodename{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.07em;fill:#f2fbff}
+.nodedata{font-family:var(--body);font-size:11px;fill:#b8d3e6}
+.badge-num{font-family:var(--display);font-weight:700;font-size:19px;fill:#fff}
+.core-num{font-family:var(--display);font-weight:700;font-size:44px}
+.core-name{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:.07em;fill:#f2fbff}
+.core-sub{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.12em;fill:#8fdcff}
+.core-st{font-family:var(--body);font-size:12px}
+@keyframes breathe{0%,100%{opacity:.35}50%{opacity:.9}}
+.breathe{animation:breathe 4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.breathe{animation:none}}
+
+/* Stream popover */
+.panel{position:absolute;z-index:6;top:4%;left:4%;width:min(440px,92%);max-height:88%;overflow:auto;padding:18px 18px 16px;border:1px solid var(--line-hi);border-radius:16px;
+  background:linear-gradient(140deg,#07182bf7,#091024f7);box-shadow:0 0 40px #00aaff40,0 14px 50px #000b;display:none}
+.panel.show{display:block}
+.panel h2{margin:0 36px 2px 0;font-family:var(--display);font-size:24px;letter-spacing:.04em}
+.panel .sub{color:var(--ink-2);font-size:12.5px;margin:0 0 10px}
+.panel h3{font-family:var(--display);font-size:14px;letter-spacing:.08em;margin:14px 0 6px;color:#8fdcff}
+.panel p{font-size:13px;margin:6px 0}
+.panel ol{margin:0;padding-left:22px;font-size:13px}
+.panel ol li{padding:3px 0}
+.panel .agentlink,.panel button.sublink{background:none;border:0;padding:0;color:#bfe9ff;text-decoration:underline;text-underline-offset:3px;cursor:pointer;text-align:left}
+.close{position:absolute;right:12px;top:10px;border:1px solid #55748c;border-radius:50%;width:32px;height:32px;background:#152e48;color:#fff;cursor:pointer;font-size:19px;line-height:1}
+
+/* Agent strip */
+.strip{margin-top:16px}
+.strip-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.strip-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:10px;margin-top:10px}
+.agent{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;text-align:left;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#08182bcc;color:var(--ink);cursor:pointer}
+.agent:hover{border-color:var(--line-hi)}
+.agent .orb{grid-row:span 4;width:34px;height:34px;border-radius:50%;border:2px solid var(--c);box-shadow:inset 0 0 10px var(--c)}
+.agent b{font-size:13px;line-height:1.2}
+.agent small{color:var(--ink-3);font-size:11px}
+.agent .id{font-size:10.5px;overflow-wrap:anywhere}
+.agent b,.agent small{min-width:0;overflow-wrap:anywhere}
+.agent .id.unv{color:var(--sev-identifier)}
+select.ctl,.btn{border:1px solid #37658a;border-radius:8px;background:#10243c;color:var(--ink);padding:7px 11px;cursor:pointer}
+.btn:hover{border-color:var(--line-hi)}
+.btn.primary{background:#0c3a5a;border-color:#4cbde7}
+
+/* Lower sections */
+.lower{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;margin-top:16px}
+.intake .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.intake input[type=file]{color:var(--ink-2);max-width:100%}
+.tablewrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:7px 8px;border-top:1px solid #17385a;vertical-align:top}
+td:first-child{white-space:nowrap}
+th{color:var(--ink-3);font-weight:500;font-size:11.5px;border-top:0}
+code{font-size:12px;color:#bfe9ff}
+details summary{cursor:pointer;color:var(--ink-2);font-size:12.5px;margin-top:8px}
+pre{white-space:pre-wrap;font-size:11.5px;background:#06121f;border:1px solid var(--line);border-radius:8px;padding:10px;color:#cfe6f5}
+footer{margin-top:18px;color:var(--ink-3);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #193956;padding-top:12px}
+footer strong{color:var(--ink-2)}
+
+/* Agent modal */
+.modal{position:fixed;inset:0;background:#010712dc;z-index:30;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(8px)}
+.modal.open{display:flex}
+.detail{position:relative;width:min(800px,100%);max-height:90vh;overflow:auto;border:1px solid var(--line-hi);border-radius:20px;
+  background:radial-gradient(ellipse at 40% 0%,#183d61,#061323 72%);padding:24px;box-shadow:0 0 60px #179dff50}
+.detail .path{color:#82cfff;font-size:12px;letter-spacing:.06em}
+.detail h2{margin:4px 42px 4px 0;font-family:var(--display);font-size:clamp(22px,3vw,30px);letter-spacing:.03em}
+.detail .status{font-size:13px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:18px 0 14px;border-bottom:1px solid #335674;padding-bottom:10px}
+.tabs button{border:1px solid #335674;border-radius:16px;background:#102944;color:#bcd8ed;padding:7px 12px;white-space:nowrap;cursor:pointer}
+.tabs button[aria-selected=true]{background:#1a5278;border-color:#68d7ff;color:#fff}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cell{border:1px solid #2c5675;border-radius:11px;padding:11px 12px;background:#10253b}
+.cell label{display:block;font-size:11px;color:#8eb9d4;margin-bottom:5px}
+.cell span{font-size:13.5px;overflow-wrap:anywhere}
+.msg{border-left:2px solid #54b4e8;padding:12px 14px;background:#10243b;color:#c4d7e9;font-size:13.5px}
+.hist{list-style:none;margin:0;padding:0}
+.detail h3.dh{font-family:var(--display);font-size:15px;letter-spacing:.05em;color:#8fdcff;margin:18px 0 6px}
+.plain{margin:0;padding-left:18px;font-size:13px;color:#c4d7e9}.plain li{padding:2px 0}
+table.stages td:first-child{color:#8eb9d4;width:110px}
+.hist li{padding:9px 0;border-top:1px solid #234766;font-size:12.5px}
+.hist li:first-child{border-top:0}
+
+@media (max-width:1180px){
+  .deck{grid-template-columns:1fr 1fr}
+  .orbital{grid-column:1 / -1;order:-1}
+  .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .kpi:nth-child(5){border-left:0}
+  .kpi:nth-child(n+5){border-top:1px solid var(--line)}
+  .topbar{grid-template-columns:1fr auto}
+  .kpis{grid-column:1 / -1;order:3}
+  .lower{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .deck{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi:nth-child(odd){border-left:0}
+  .kpi:nth-child(n+3){border-top:1px solid var(--line)}
+  .panel{position:fixed;top:8vh;left:4%;width:92%;max-height:80vh}
+  .grid2{grid-template-columns:1fr}
+  .detail{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <h1>FORGEDTITANIUM <small>LTD</small></h1>
+      <p>AGENT COMMAND CENTRE</p>
+    </div>
+    <div class="kpis" id="kpis" aria-label="Summary figures derived from the agent register; no agent is connected"></div>
+    <div class="clock" aria-label="Current time in Cyprus">
+      <div class="d" id="clockDate"></div>
+      <div class="t" id="clockTime"></div>
+      <div class="z" id="clockZone"></div>
+    </div>
+  </header>
+  <p class="notice" id="notice"></p>
+
+  <div class="deck">
+    <div class="col">
+      <section class="box" aria-labelledby="actTitle">
+        <h2 id="actTitle">Reported activity <em>not connected</em></h2>
+        <div id="activity"></div>
+      </section>
+      <section class="box" aria-labelledby="apprTitle">
+        <h2 id="apprTitle">Approval requests <em id="apprCount"></em></h2>
+        <div id="approvals"></div>
+      </section>
+    </div>
+
+    <section class="orbital" aria-label="FORGEDTITANIUM stream orbital. Select a stream for detail.">
+      <svg id="orbit" viewBox="0 0 1200 800" role="group"></svg>
+      <section class="panel" id="panel" role="dialog" aria-modal="false" aria-labelledby="panelTitle">
+        <button class="close" id="panelClose" type="button" aria-label="Close stream detail">&times;</button>
+        <h2 id="panelTitle"></h2>
+        <p class="sub" id="panelSub"></p>
+        <div id="panelBody"></div>
+      </section>
+    </section>
+
+    <div class="col">
+      <section class="box" aria-labelledby="streamTitle">
+        <h2 id="streamTitle">Stream status</h2>
+        <ul class="kv" id="streamStatus"></ul>
+      </section>
+      <section class="box" aria-labelledby="connTitle">
+        <h2 id="connTitle">Telemetry connections</h2>
+        <ul class="kv" id="connections"></ul>
+      </section>
+      <section class="box warn" aria-labelledby="excTitle">
+        <h2 id="excTitle">Routing exceptions <em id="excCount"></em></h2>
+        <div id="exceptionsShort"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="box strip" aria-labelledby="regTitle">
+    <div class="strip-head">
+      <h2 id="regTitle">Agent register <em>select an agent for detail</em></h2>
+      <label>Operating stream
+        <select id="agentFilter" class="ctl">
+          <option value="all">All streams</option>
+          <option value="01">01 Travel Intelligence</option>
+          <option value="02">02 Quality Solutions</option>
+          <option value="06">06 Venture Engine</option>
+        </select>
+      </label>
+    </div>
+    <div class="strip-grid" id="agentGrid"></div>
+  </section>
+
+  <footer>
+    <div><strong>FORGEDTITANIUM Agent Command Centre, public preview</strong>. Every figure on this page is derived from the agent register. No agent is connected, nothing shown is a live reading, and statuses stay Unknown until genuine agent reports are available.</div>
+    <div>Times shown in Europe/Nicosia (EET/EEST); stored in UTC.</div>
+  </footer>
+</div>
+
+<div class="modal" id="agentModal" aria-hidden="true">
+  <section class="detail" role="dialog" aria-modal="true" aria-labelledby="detailName">
+    <button class="close" id="detailClose" type="button" aria-label="Close agent detail">&times;</button>
+    <div class="path" id="detailPath"></div>
+    <h2 id="detailName"></h2>
+    <div class="status" id="detailStatus"></div>
+    <nav class="tabs" id="detailTabs" aria-label="Agent detail sections"></nav>
+    <div id="detailContent"></div>
+  </section>
+</div>
+
+<script src="acc_register.js"></script>
+<script src="acc_core.js"></script>
+<script>
+(function(){
+'use strict';
+const A = window.ACC;
+const store = A.createStore();
+let nowFn = () => Date.now();
+const $ = id => document.getElementById(id);
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+/* ---------- helpers ---------- */
+function el(tag, attrs, ...kids){
+  const n = document.createElement(tag);
+  if (attrs) for (const [k,v] of Object.entries(attrs)) { if (v === null || v === undefined) continue; if (k === 'text') n.textContent = v; else if (k === 'cls') n.className = v; else n.setAttribute(k, v); }
+  for (const k of kids) if (k !== null && k !== undefined) n.append(k);
+  return n;
+}
+function sv(tag, attrs, ...kids){
+  const n = document.createElementNS(SVGNS, tag);
+  if (attrs) for (const [k,v] of Object.entries(attrs)) { if (v === null || v === undefined) continue; if (k === 'text') n.textContent = v; else n.setAttribute(k, v); }
+  for (const k of kids) if (k) n.append(k);
+  return n;
+}
+const STATUS_TEXT = {working:'Working', idle:'Idle', awaiting_approval:'Awaiting approval', failed:'Failed', offline:'Offline', unknown:'Unknown (reported)'};
+const SEV_TEXT = {violation:'Violation', review:'Review', data:'Data', identifier:'Identifier', info:'Info'};
+function statusNode(ev){
+  const s = ev ? ev.status : 'none';
+  return el('span', {cls:'st', 'data-s':s, text: ev ? STATUS_TEXT[s] : 'Unknown, no report'});
+}
+function dot(ev){ return el('span', {cls:'dot', 'data-s': ev ? ev.status : 'none', 'aria-hidden':'true'}); }
+function chips(flags, includeInfo){
+  const f = el('span');
+  for (const x of flags) if (includeInfo || x.severity !== 'info') f.append(el('span', {cls:'chip', 'data-sev':x.severity, title:x.message, text:SEV_TEXT[x.severity] + ': ' + x.code}));
+  return f;
+}
+function eur(n){ return '\u20ac' + (n < 0.01 && n > 0 ? n.toFixed(4) : n.toFixed(2)); }
+function allowanceLine(a){
+  const u = A.allowanceUsage(store, a, nowFn());
+  if (!u.status.configured) return u.costedReports ? 'No approved allowance; ' + eur(u.reportedEur) + ' API cost reported' : 'No approved allowance; no cost reported';
+  return 'Today ' + eur(u.todayEur) + ' of ' + eur(u.status.daily) + ', month ' + eur(u.monthEur) + ' of ' + eur(u.status.monthly) + (u.breaches.length ? ', ' + u.breaches.length + ' breach(es)' : '');
+}
+function streamOf(id){ return A.STREAMS.find(s => s.id === id); }
+function agentByKey(k){ return A.REGISTER.find(a => A.agentKey(a) === k); }
+function idLine(a){ return a.code ? a.code : 'No verified code (interim: ' + a.interim_id + ')'; }
+const VER_TEXT = {verified:'Verified', not_evidenced:'Provisional: not evidenced', unverified:'Provisional: unverified'};
+const VER_SEV = {verified:'ok', not_evidenced:'review', unverified:'identifier'};
+function verChip(a){ return el('span', {cls:'chip', 'data-sev':VER_SEV[a.verification], text:VER_TEXT[a.verification]}); }
+const PERM_TEXT = {permitted:'Permitted', permitted_within_allowance:'Permitted within approved allowance', escalation_with_reason:'Escalation only, with recorded reason', approval_required:'Requires the owner\u2019s approval', not_permitted:'Not permitted'};
+function receivedLine(e){
+  if (!e.received_at_utc) return 'Not recorded';
+  const ms = Date.parse(e.received_at_utc), late = e.flags.some(f => f.code === 'DELIVERED_LATE');
+  return A.formatNicosia(ms, 'datetime') + (late ? ', delivered late' : '') + (e.delivery && e.delivery.attempts ? ' (buffered, attempt ' + e.delivery.attempts + ')' : '');
+}
+function provenance(e){ return e.authenticated ? 'Stored report, authenticated (key ' + e.key_id + ').' : 'Imported report, source not authenticated.'; }
+
+/* ---------- clock ---------- */
+function tickClock(){
+  const now = nowFn();
+  $('clockDate').textContent = A.formatNicosia(now, 'date');
+  $('clockTime').textContent = A.formatNicosia(now, 'clock');
+  $('clockZone').textContent = 'Cyprus (' + A.tzLabel(now) + ')';
+}
+
+/* ---------- KPIs ---------- */
+function renderKpis(sum){
+  const subCount = A.STREAMS.slice(1).reduce((n,s) => n + s.sub.length, 0);
+  const corroborated = A.STREAMS.slice(1).reduce((n,s) => n + s.sub.filter(x => x.status === 'corroborated').length, 0);
+  const noRep = !sum.hasData;
+  const items = [
+    [String(A.STREAMS.length - 1), 'Streams (register)', false],
+    [String(subCount), 'Sub-streams (' + corroborated + ' corroborated, rest provisional)', false],
+    [sum.verifiedCount + ' of ' + sum.registered, 'Agents verified (of listed)', false],
+    [noRep ? 'No reports' : sum.reportingCount + ' of ' + sum.registered, 'Agents reporting (last 24 h)', noRep],
+    [noRep ? 'No data' : String(sum.workingCount), 'Reported working', noRep],
+    [noRep ? 'No data' : String(sum.approvals.length), 'Approvals pending', noRep],
+    [sum.cost.hasApi ? eur(sum.cost.apiEur) : 'No cost data', sum.cost.hasApi ? 'API cost today, reported (' + sum.cost.costedToday + ' of ' + sum.cost.eventsToday + ' reports costed)' : 'API cost today', !sum.cost.hasApi],
+    ['Not connected', 'System health telemetry', true]
+  ];
+  const k = $('kpis'); k.replaceChildren();
+  for (const [v,l,nd] of items) k.append(el('div', {cls:'kpi', 'data-kpi':l}, el('b', {cls: nd ? 'nodata' : null, text:v}), el('span', {text:l})));
+}
+
+/* ---------- Orbital SVG ---------- */
+const C = {x:600, y:400}, R = 250, NR = 86;
+const ANGLES = {'01':-90,'02':-30,'03':30,'04':90,'05':150,'06':210};
+const LABELS = {
+  '01':{x:712,y:52,anchor:'start'}, '02':{x:915,y:225,anchor:'start'}, '03':{x:915,y:470,anchor:'start'},
+  '04':{x:700,y:640,anchor:'start'}, '05':{x:285,y:470,anchor:'end'}, '06':{x:285,y:225,anchor:'end'}
+};
+function pos(id){ const a = ANGLES[id] * Math.PI / 180; return {x: C.x + R*Math.cos(a), y: C.y + R*Math.sin(a)}; }
+function trunc(s, n){ return s.length > n ? s.slice(0, n - 1) + '\u2026' : s; }
+
+function icon(id, color){
+  const g = sv('g', {fill:'none', stroke:color, 'stroke-width':'2.4', 'stroke-linecap':'round', 'stroke-linejoin':'round', 'aria-hidden':'true'});
+  const add = (t,a) => g.append(sv(t,a));
+  switch(id){
+    case '01': add('path',{d:'M-22 4 L22 -4 M-4 0 L-14 16 M2 -1 L-6 -18 M14 -2 L20 -10 M-20 4 L-24 -3'}); add('path',{d:'M-22 4 C-8 2 10 -1 22 -4 C24 -4.5 25 -2 22 -1 C10 2 -6 6 -18 8 Z', fill:color, 'fill-opacity':'.25'}); break;
+    case '02': add('circle',{r:9}); for(let i=0;i<8;i++){const a=i*Math.PI/4; add('line',{x1:15*Math.cos(a),y1:15*Math.sin(a),x2:21*Math.cos(a),y2:21*Math.sin(a),'stroke-width':'5'});} add('circle',{r:16}); break;
+    case '03': add('rect',{x:-15,y:-14,width:30,height:26,rx:7}); add('circle',{cx:-6,cy:-2,r:3,fill:color}); add('circle',{cx:6,cy:-2,r:3,fill:color}); add('path',{d:'M-6 7 H6 M0 -14 V-21 M-15 -1 H-20 M15 -1 H20'}); add('circle',{cx:0,cy:-23,r:2.5,fill:color}); break;
+    case '04': add('path',{d:'M0 -10 C-8 -15 -16 -15 -22 -12 V12 C-16 9 -8 9 0 14 C8 9 16 9 22 12 V-12 C16 -15 8 -15 0 -10 Z M0 -10 V14'}); add('path',{d:'M-17 -5 H-5 M-17 1 H-5 M5 -5 H17 M5 1 H17','stroke-width':'1.5'}); break;
+    case '05': add('path',{d:'M-16 6 A20 20 0 0 1 10 -20 Z', fill:color, 'fill-opacity':'.2'}); add('path',{d:'M-3 -7 L10 -18 M-6 10 L-12 20 H8 L2 10'}); add('path',{d:'M14 -24 A8 8 0 0 1 20 -18 M16 -29 A14 14 0 0 1 25 -20','stroke-width':'1.6'}); break;
+    case '06': add('circle',{r:20}); add('circle',{r:12}); add('circle',{r:4,fill:color}); add('path',{d:'M4 -4 L22 -22 M16 -22 H22 V-16'}); break;
+  }
+  return g;
+}
+
+let orbitBuilt = false;
+function buildOrbit(){
+  const svg = $('orbit');
+  svg.replaceChildren();
+  svg.append(sv('title', {text:'FORGEDTITANIUM streams 00 to 06'}));
+  const defs = sv('defs');
+  defs.append(sv('filter', {id:'glow', x:'-50%', y:'-50%', width:'200%', height:'200%'},
+    sv('feGaussianBlur', {stdDeviation:'6', result:'b'}),
+    sv('feMerge', {}, sv('feMergeNode', {in:'b'}), sv('feMergeNode', {in:'SourceGraphic'}))));
+  const core = sv('radialGradient', {id:'coreFill', cx:'45%', cy:'40%', r:'65%'});
+  core.append(sv('stop',{offset:'0%','stop-color':'#1b6fc4','stop-opacity':'.9'}), sv('stop',{offset:'60%','stop-color':'#0a2e5c','stop-opacity':'.95'}), sv('stop',{offset:'100%','stop-color':'#041226'}));
+  defs.append(core);
+  for (const s of A.STREAMS.slice(1)) {
+    const g = sv('radialGradient', {id:'nf'+s.id, cx:'50%', cy:'35%', r:'70%'});
+    g.append(sv('stop',{offset:'0%','stop-color':s.color,'stop-opacity':'.32'}), sv('stop',{offset:'70%','stop-color':'#06142a','stop-opacity':'.96'}), sv('stop',{offset:'100%','stop-color':'#030a18'}));
+    defs.append(g);
+    defs.append(sv('marker', {id:'ar'+s.id, viewBox:'0 0 10 10', refX:'6', refY:'5', markerWidth:'7', markerHeight:'7', orient:'auto-start-reverse'}, sv('path', {d:'M0 0 L10 5 L0 10 Z', fill:s.color})));
+  }
+  svg.append(defs);
+
+  // star field (decorative, deterministic)
+  const stars = sv('g', {'aria-hidden':'true', opacity:'.7'});
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 150; i++) stars.append(sv('circle', {cx:(rnd()*1200).toFixed(1), cy:(rnd()*800).toFixed(1), r:(rnd()*1.3+.2).toFixed(2), fill: rnd() > .8 ? '#ffd9a0' : '#9fd8ff', opacity:(rnd()*.6+.2).toFixed(2)}));
+  svg.append(stars);
+
+  // horizon arcs
+  const hz = sv('g', {'aria-hidden':'true', fill:'none'});
+  hz.append(sv('ellipse', {cx:600, cy:560, rx:560, ry:150, stroke:'#1a6fd0', 'stroke-opacity':'.25'}));
+  hz.append(sv('ellipse', {cx:600, cy:580, rx:600, ry:180, stroke:'#1a6fd0', 'stroke-opacity':'.15'}));
+  svg.append(hz);
+
+  // orbit ring and flow arcs
+  svg.append(sv('circle', {cx:C.x, cy:C.y, r:R, fill:'none', stroke:'#2d7ed6', 'stroke-opacity':'.35', 'stroke-width':'1.5', 'stroke-dasharray':'2 7', 'aria-hidden':'true'}));
+  const order = ['01','02','03','04','05','06'];
+  const flows = sv('g', {'aria-hidden':'true', fill:'none', 'stroke-width':'2.5'});
+  order.forEach((id, i) => {
+    const a1 = (ANGLES[id] + 22) * Math.PI/180, a2 = (ANGLES[order[(i+1)%6]] - 22) * Math.PI/180;
+    const p1 = {x:C.x+R*Math.cos(a1), y:C.y+R*Math.sin(a1)}, p2 = {x:C.x+R*Math.cos(a2), y:C.y+R*Math.sin(a2)};
+    flows.append(sv('path', {d:`M${p1.x.toFixed(1)} ${p1.y.toFixed(1)} A${R} ${R} 0 0 1 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`, stroke:streamOf(id).color, 'stroke-opacity':'.75', 'marker-end':'url(#ar'+id+')'}));
+  });
+  svg.append(flows);
+
+  // spokes
+  const spokes = sv('g', {'aria-hidden':'true'});
+  for (const id of order) {
+    const p = pos(id), c = streamOf(id).color;
+    const ux = (p.x - C.x)/R, uy = (p.y - C.y)/R;
+    spokes.append(sv('line', {x1:(C.x+ux*150).toFixed(1), y1:(C.y+uy*150).toFixed(1), x2:(p.x-ux*NR).toFixed(1), y2:(p.y-uy*NR).toFixed(1), stroke:c, 'stroke-opacity':'.45', 'stroke-dasharray':'1 6', 'stroke-linecap':'round', 'stroke-width':'2'}));
+    spokes.append(sv('circle', {cx:(C.x+ux*175).toFixed(1), cy:(C.y+uy*175).toFixed(1), r:3.5, fill:c, filter:'url(#glow)'}));
+  }
+  svg.append(spokes);
+
+  // core (00)
+  const coreG = sv('g', {class:'node', id:'node00', tabindex:'0', role:'button', 'aria-label':'00 FORGEDTITANIUM company overview', 'data-id':'00'});
+  coreG.append(sv('circle', {class:'breathe', cx:C.x, cy:C.y, r:152, fill:'none', stroke:'#51ccff', 'stroke-width':'2', filter:'url(#glow)'}));
+  coreG.append(sv('circle', {class:'halo', cx:C.x, cy:C.y, r:142, fill:'url(#coreFill)', stroke:'#62cfff', 'stroke-width':'3', opacity:'.95'}));
+  const grid = sv('g', {fill:'none', stroke:'#5fb6ff', 'stroke-opacity':'.22', 'aria-hidden':'true'});
+  for (const ry of [40, 85, 125]) grid.append(sv('ellipse', {cx:C.x, cy:C.y, rx:140, ry}));
+  for (const rx of [40, 85, 125]) grid.append(sv('ellipse', {cx:C.x, cy:C.y, rx, ry:140}));
+  coreG.append(grid);
+  coreG.append(sv('path', {d:`M${C.x-14} ${C.y-112} h30 l-5 7 h-17 v8 h14 l-5 7 h-9 v14 h-8 z`, fill:'#e8f6ff', 'aria-hidden':'true'}));
+  coreG.append(sv('text', {class:'core-num', x:C.x, y:C.y-30, 'text-anchor':'middle', fill:'#62cfff', text:'00'}));
+  coreG.append(sv('text', {class:'core-name', x:C.x, y:C.y+6, 'text-anchor':'middle', text:'FORGEDTITANIUM'}));
+  coreG.append(sv('text', {class:'core-sub', x:C.x, y:C.y+32, 'text-anchor':'middle', text:'MASTER AGENT'}));
+  coreG.append(sv('text', {class:'core-st', id:'coreStatus', x:C.x, y:C.y+58, 'text-anchor':'middle', fill:'#7f9db6'}));
+  coreG.append(sv('text', {class:'core-st', id:'coreTime', x:C.x, y:C.y+76, 'text-anchor':'middle', fill:'#7f9db6'}));
+  svg.append(coreG);
+
+  // stream nodes
+  for (const s of A.STREAMS.slice(1)) {
+    const p = pos(s.id), lab = LABELS[s.id];
+    const subs = sv('g', {});
+    s.sub.forEach((item, i) => {
+      const t = item.label;
+      const y = lab.y + i*21;
+      const tx = sv('text', {class:'sublabel sublink', x:lab.x, y, 'text-anchor':lab.anchor, tabindex:'0', role:'button', 'aria-label':'Open Level 2 item ' + t + ' in stream ' + s.id + ' ' + s.name, 'data-stream':s.id, 'data-sub':String(i)});
+      tx.addEventListener('click', () => openStream(s.id, true, i));
+      tx.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openStream(s.id, true, i); } });
+      tx.append(sv('tspan', {class:'subnum', fill:s.color, text:String(i+1).padStart(2,'0') + '  '}));
+      tx.append(sv('tspan', {text: trunc(t, 44)}));
+      tx.append(sv('title', {text:t + (item.code ? ' (' + item.code + ')' : '') + ', ' + item.status}));
+      if (item.status !== 'corroborated') tx.setAttribute('opacity', '.78');
+      subs.append(tx);
+    });
+    svg.append(subs);
+
+    const g = sv('g', {class:'node', id:'node'+s.id, tabindex:'0', role:'button', 'aria-label':'Open stream ' + s.id + ' ' + s.name, 'data-id':s.id});
+    g.append(sv('circle', {class:'halo', cx:p.x, cy:p.y, r:NR+5, fill:'none', stroke:s.color, 'stroke-width':'3', opacity:'.75', filter:'url(#glow)'}));
+    g.append(sv('circle', {class:'ring', cx:p.x, cy:p.y, r:NR, fill:'url(#nf'+s.id+')', stroke:s.color, 'stroke-width':'2'}));
+    const ic = icon(s.id, s.color); ic.setAttribute('transform', `translate(${p.x} ${p.y-30}) scale(1.15)`); g.append(ic);
+    const words = s.name.toUpperCase().replace('\u2019', '\u2019').split(' ');
+    const lines = s.name.length > 13 ? [words.slice(0, Math.ceil(words.length/2)).join(' '), words.slice(Math.ceil(words.length/2)).join(' ')] : [words.join(' ')];
+    lines.forEach((ln, i) => g.append(sv('text', {class:'nodename', x:p.x, y:p.y + 10 + i*19, 'text-anchor':'middle', text:ln})));
+    g.append(sv('text', {class:'nodedata', id:'nd'+s.id, x:p.x, y:p.y + (lines.length > 1 ? 50 : 34), 'text-anchor':'middle'}));
+    g.append(sv('circle', {cx:p.x, cy:p.y-NR, r:20, fill:'#06142a', stroke:s.color, 'stroke-width':'2.5'}));
+    g.append(sv('text', {class:'badge-num', x:p.x, y:p.y-NR+7, 'text-anchor':'middle', text:s.id}));
+    svg.append(g);
+  }
+
+  svg.querySelectorAll('.node').forEach(n => {
+    n.addEventListener('click', () => openStream(n.dataset.id));
+    n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openStream(n.dataset.id); } });
+  });
+  orbitBuilt = true;
+}
+
+function renderOrbitData(sum){
+  if (!orbitBuilt) buildOrbit();
+  const master = sum.agents.find(x => x.agent.master);
+  const cs = $('coreStatus'), ct = $('coreTime');
+  if (master && master.current) {
+    cs.textContent = 'Reported: ' + STATUS_TEXT[master.current.status];
+    cs.setAttribute('fill', getComputedStyle(document.documentElement).getPropertyValue('--st-' + ({awaiting_approval:'awaiting'}[master.current.status] || master.current.status)).trim() || '#a9c6dc');
+    ct.textContent = A.formatNicosia(master.current.ms, 'time') + ', not live';
+  } else {
+    cs.textContent = 'Status unknown: no report';
+    cs.setAttribute('fill', '#7f9db6');
+    ct.textContent = 'No live connection';
+  }
+  for (const st of sum.streams) {
+    const t = $('nd' + st.stream.id);
+    if (st.stream.id === '03') t.textContent = st.homed + ' agents homed here';
+    else if (st.operating === 0) t.textContent = 'No registered agent';
+    else t.textContent = st.operating + ' agent' + (st.operating > 1 ? 's' : '') + ', ' + (st.reporting ? st.reporting + ' reporting' : 'none reporting');
+  }
+}
+
+/* ---------- Side panels ---------- */
+function renderActivity(){
+  const box = $('activity'); box.replaceChildren();
+  const recent = store.events.slice(0, 6);
+  if (!recent.length) { box.append(el('p', {cls:'empty', text:'No agent reports available. Not connected.'})); return; }
+  const ul = el('ul', {cls:'rows'});
+  for (const e of recent) {
+    const a = agentByKey(e.agent_key);
+    ul.append(el('li', null,
+      el('span', {cls:'when', text:A.formatNicosia(e.ms, 'time')}),
+      el('span', {cls:'what'}, el('b', {text:a.name}), el('span', null, statusNode(e), document.createTextNode(e.task ? ', ' + e.task : '')))));
+  }
+  box.append(ul);
+}
+
+function renderApprovals(sum){
+  const box = $('approvals'); box.replaceChildren();
+  $('apprCount').textContent = sum.hasData ? sum.approvals.length + ' pending' : 'no data';
+  if (!sum.approvals.length) { box.append(el('p', {cls:'empty', text: sum.hasData ? 'No agent is currently reporting awaiting approval.' : 'No approval requests reported.'})); return; }
+  const ul = el('ul', {cls:'rows'});
+  for (const ap of sum.approvals) {
+    ul.append(el('li', null,
+      el('span', {cls:'when', text:A.formatNicosia(ap.event.ms, 'time')}),
+      el('span', {cls:'what'}, el('b', {text:ap.agent.name}), el('span', {text: ap.detail ? ap.detail.summary + (ap.detail.reference ? ' (' + ap.detail.reference + ')' : '') : 'Details not supplied by agent'}))));
+  }
+  box.append(ul);
+  box.append(el('p', {cls:'empty', text:'Display only. Decisions are made outside this dashboard.'}));
+}
+
+function renderStreams(sum){
+  const ul = $('streamStatus'); ul.replaceChildren();
+  for (const st of sum.streams) {
+    let txt;
+    if (st.stream.id === '03') txt = 'Home of ' + st.homed + ' registered agents';
+    else if (!st.operating) txt = 'No registered agent';
+    else if (!st.reporting) txt = st.operating + ' registered, status unknown';
+    else txt = st.reporting + ' of ' + st.operating + ' reporting' + (st.statuses.includes('failed') ? ', failure reported' : '');
+    ul.append(el('li', null, el('span', null, el('span', {cls:'dot', style:'background:' + st.stream.color + ';border:0', 'aria-hidden':'true'}), document.createTextNode(st.stream.id + ' ' + st.stream.name)), el('span', {cls:'v', text:txt})));
+  }
+}
+
+function renderConnections(){
+  const ul = $('connections'); ul.replaceChildren();
+  for (const n of ['Agent services', 'GitHub integration', 'AI providers', 'Database', 'Automations', 'External APIs'])
+    ul.append(el('li', null, el('span', {text:n}), el('span', {cls:'v', text:'Not connected'})));
+}
+
+function renderExceptions(sum){
+  $('excCount').textContent = sum.hasData ? sum.violations + ' violation' + (sum.violations === 1 ? '' : 's') + ', ' + sum.reviews + ' for review' : 'no data';
+  const box = $('exceptionsShort'); box.replaceChildren();
+  const breaches = sum.allowances.flatMap(x => x.usage.breaches.map(b => ({agent:x.agent, b})));
+  for (const x of breaches) box.append(el('p', {cls:'empty', style:'color:var(--sev-violation)', text:'Allowance breach: ' + x.agent.name + ', ' + x.b.kind + ' ' + x.b.period + ', ' + eur(x.b.total) + ' against ' + eur(x.b.limit)}));
+  for (const r of A.registerIssues()) box.append(el('p', {cls:'empty', style:'color:var(--sev-review)', text:'Register: ' + r.agent + ', ' + r.issue}));
+  const ex = sum.exceptions.slice(0, 5);
+  if (!ex.length) { if (!breaches.length) box.append(el('p', {cls:'empty', text: sum.hasData ? 'No routing or data exceptions in reports.' : 'No agent reports to check. Not connected.'})); return; }
+  const ul = el('ul', {cls:'rows'});
+  for (const e of ex) {
+    ul.append(el('li', null, el('span', {cls:'when', text:A.formatNicosia(e.ms, 'time')}),
+      el('span', {cls:'what'}, el('b', {text:agentByKey(e.agent_key).name}), chips(e.flags.filter(f => f.severity !== 'identifier'), false))));
+  }
+  box.append(ul);
+}
+
+/* ---------- Agent strip ---------- */
+function renderAgents(sum){
+  const f = $('agentFilter').value, grid = $('agentGrid'); grid.replaceChildren();
+  for (const x of sum.agents.filter(x => f === 'all' || x.agent.stream === f)) {
+    const a = x.agent, c = streamOf(a.stream).color;
+    const b = el('button', {cls:'agent', type:'button', style:'--c:' + c, 'aria-label':'View ' + a.name + ' detail', 'data-agent':A.agentKey(a)},
+      el('span', {cls:'orb', 'aria-hidden':'true'}),
+      el('b', {text:a.name}),
+      el('small', null, dot(x.current), statusNode(x.current), document.createTextNode(x.current ? ', ' + A.formatNicosia(x.current.ms, 'time') : '')),
+      el('small', {cls:'id' + (a.code ? '' : ' unv'), text: a.code ? a.code : 'No verified code: ' + a.interim_id}),
+      el('small', null, verChip(a)));
+    b.addEventListener('click', () => openAgent(A.agentKey(a)));
+    grid.append(b);
+  }
+}
+
+/* ---------- Stream panel ---------- */
+let openStreamId = null;
+function openStream(id, focus, subIdx){
+  const s = streamOf(id), now = nowFn();
+  openStreamId = id;
+  document.querySelectorAll('#orbit .node').forEach(n => n.classList.toggle('active', n.dataset.id === id));
+  $('panelTitle').textContent = s.id + ' ' + s.name;
+  $('panelSub').textContent = s.id === '00' ? 'Level 00, company overview' : 'Level 1, stream detail';
+  const body = $('panelBody'); body.replaceChildren(el('p', {text:s.note}));
+  if (s.id === '00') {
+    body.append(el('h3', {text:'Business streams'}));
+    const ol = el('ol'); for (const v of A.STREAMS.slice(1)) ol.append(el('li', {text:v.id + ' ' + v.name})); body.append(ol);
+  } else {
+    body.append(el('h3', {text:'Level 2 register'}));
+    const ol = el('ol');
+    s.sub.forEach((v, i) => {
+      const pick = el('button', {cls:'sublink', type:'button', 'data-sub':String(i), 'aria-pressed':String(subIdx === i), text:v.label + (v.code ? ' (' + v.code + ')' : '')});
+      pick.addEventListener('click', () => openStream(id, false, i));
+      ol.append(el('li', null, pick, document.createTextNode(' '), el('span', {cls:'chip', 'data-sev': v.status === 'corroborated' ? 'ok' : 'info', text: v.status === 'corroborated' ? 'Corroborated ' + v.evidence : 'Provisional'})));
+    });
+    body.append(ol);
+    if (subIdx !== null && subIdx !== undefined && s.sub[subIdx]) {
+      const v = s.sub[subIdx];
+      const linked = A.REGISTER.filter(a => v.code && a.home === v.code);
+      const box = el('div', {cls:'subdetail', id:'subDetail'},
+        el('h3', {text:'Level 2: ' + v.label}),
+        el('p', {text: (v.status === 'corroborated' ? 'Corroborated by ' + v.evidence + '.' : 'Provisional: not yet corroborated by an approved organisational record.') + (v.code ? ' Code ' + v.code + '.' : ' No code recorded.')}));
+      if (linked.length) {
+        const ul = el('ul', {cls:'rows'});
+        for (const a of linked) { const lk = el('button', {cls:'agentlink', type:'button', text:a.name}); lk.addEventListener('click', () => openAgent(A.agentKey(a))); ul.append(el('li', null, el('span', {cls:'what'}, lk))); }
+        box.append(el('p', {cls:'empty', text:'Agents homed here:'}), ul);
+      } else box.append(el('p', {cls:'empty', text:'No registered agent is homed here. Status: Unknown, Not connected.'}));
+      body.append(box);
+    }
+  }
+  const agents = id === '00' ? A.REGISTER.filter(a => a.master) : id === '03' ? A.REGISTER : A.REGISTER.filter(a => a.stream === id);
+  body.append(el('h3', {text: id === '03' ? 'Agents homed in 03' : 'Registered agents'}));
+  if (!agents.length) body.append(el('p', {cls:'empty', text:'No registered AI agent for this stream.'}));
+  else {
+    const ul = el('ul', {cls:'rows'});
+    for (const a of agents) {
+      const cur = A.currentEvent(store, a, now);
+      const link = el('button', {cls:'agentlink', type:'button', text:a.name}); link.addEventListener('click', () => openAgent(A.agentKey(a)));
+      ul.append(el('li', null, dot(cur), el('span', {cls:'what'}, link, el('span', null, document.createTextNode(' '), statusNode(cur), document.createTextNode(' '), verChip(a)))));
+    }
+    body.append(ul);
+  }
+  $('panel').classList.add('show');
+  if (focus !== false) $('panelClose').focus();
+}
+function closeStream(){
+  $('panel').classList.remove('show'); openStreamId = null;
+  document.querySelectorAll('#orbit .node').forEach(n => n.classList.remove('active'));
+}
+
+/* ---------- Agent modal ---------- */
+const TABS = {overview:'Overview', activity:'Current activity', history:'History', performance:'Performance & costs', controls:'Controls & approvals'};
+let selKey = null, selTab = 'overview', prevFocus = null;
+function cell(l, v){ return el('div', {cls:'cell'}, el('label', {text:l}), el('span', {text:v})); }
+function openAgent(key){
+  if (!agentByKey(key)) return;
+  prevFocus = document.activeElement; selKey = key; selTab = 'overview';
+  $('agentModal').classList.add('open'); $('agentModal').setAttribute('aria-hidden', 'false');
+  drawAgent(); $('detailClose').focus();
+}
+function closeAgent(){
+  $('agentModal').classList.remove('open'); $('agentModal').setAttribute('aria-hidden', 'true'); selKey = null;
+  if (prevFocus && prevFocus.isConnected) prevFocus.focus();
+}
+function drawAgent(){
+  if (!selKey) return;
+  const a = agentByKey(selKey), now = nowFn(), cur = A.currentEvent(store, a, now), evs = A.eventsFor(store, a);
+  $('detailName').textContent = a.name;
+  $('detailPath').textContent = 'Home ' + a.home + ', operates in ' + a.stream + ' ' + streamOf(a.stream).name;
+  const st = $('detailStatus'); st.replaceChildren(dot(cur), statusNode(cur), document.createTextNode(cur ? ', reported ' + A.formatNicosia(cur.ms, 'datetime') + '. ' + provenance(cur) : '. No live connection.'));
+  const tabs = $('detailTabs'); tabs.replaceChildren();
+  for (const [k, n] of Object.entries(TABS)) {
+    const b = el('button', {type:'button', 'aria-selected':String(selTab === k), text:n}); b.addEventListener('click', () => { selTab = k; drawAgent(); }); tabs.append(b);
+  }
+  const c = $('detailContent'); c.replaceChildren();
+  if (selTab === 'overview') {
+    c.append(el('div', {cls:'grid2'},
+      cell('Agent code', idLine(a)),
+      cell('Verification', VER_TEXT[a.verification] + (a.evidence.length ? ' (' + a.evidence.join(', ') + ')' : ', no accessible source')),
+      cell('Role in source repository', a.repo_role || 'Not evidenced'),
+      cell('Home sub-stream', a.home),
+      cell('Operating stream', a.stream + ' ' + streamOf(a.stream).name),
+      cell('Development position (register)', a.position),
+      cell('Last report', evs.length ? A.formatNicosia(evs[0].ms, 'datetime') : 'None received'),
+      cell('Reports this session', String(evs.length)),
+      cell('Live monitoring', 'Not connected')));
+    const ig = a.integration || {state:'none'};
+    c.append(el('h3', {cls:'dh', text:'Reporting integration'}));
+    c.append(el('p', {cls:'empty', text:ig.note || 'No reporting integration.'}));
+    c.append(el('h3', {cls:'dh', text:'Responsibilities'}));
+    const rl = el('ul', {cls:'plain'}); for (const r of a.responsibilities) rl.append(el('li', {text:r})); c.append(rl);
+    c.append(el('h3', {cls:'dh', text:'Implementation status (five stages, at inspection ' + A.formatNicosia(Date.parse(A.CONFIG.inspected_at_utc), 'datetime') + ')'}));
+    const tb = el('tbody'); for (const k of ['built','tested','merged','configured','operational']) tb.append(el('tr', null, el('td', {text:k[0].toUpperCase() + k.slice(1)}), el('td', {text:a.stages[k]})));
+    c.append(el('div', {cls:'tablewrap'}, el('table', {cls:'stages'}, tb)));
+  } else if (selTab === 'activity') {
+    if (!cur) c.append(el('div', {cls:'msg', text: evs.length ? 'No report in the last 24 hours. Older reports are in History and are not used as current status.' : 'No agent activity received. Current task, progress and elapsed time are unavailable.'}));
+    else {
+      c.append(el('div', {cls:'grid2'},
+        cell('Reported status', STATUS_TEXT[cur.status]),
+        cell('Task', cur.task || 'Not supplied'),
+        cell('Reported at', A.formatNicosia(cur.ms, 'full')),
+        cell('Stored (UTC)', cur.timestamp_utc),
+        cell('Execution mode', cur.dry_run === null ? 'Not stated' : cur.dry_run ? 'Dry run' : 'Live (non-dry-run)'),
+        cell('Model tier', cur.model_tier || 'Not stated'),
+        cell('Escalation reason', cur.escalation_reason || 'None recorded'),
+        cell('Reported cost', cur.cost_eur === null ? (cur.cost_usd_estimated ? 'USD ' + cur.cost_usd_estimated + ' estimate, not converted' : 'Not supplied') : eur(cur.cost_eur) + ' (' + cur.cost_basis + ')'),
+        cell('Run reference', cur.run_ref || 'Not supplied'),
+        cell('Received by ACC', receivedLine(cur))));
+      if (cur.flags.length) c.append(el('div', {style:'margin-top:10px'}, chips(cur.flags, true)));
+    }
+  } else if (selTab === 'history') {
+    if (!evs.length) c.append(el('div', {cls:'msg', text:'No reports received for this agent. Not connected; status is Unknown.'}));
+    else {
+      const ul = el('ul', {cls:'hist'});
+      for (const e of evs) ul.append(el('li', null, el('div', null, el('b', {text:A.formatNicosia(e.ms, 'datetime') + '  '}), statusNode(e), document.createTextNode(e.task ? ', ' + e.task : '')),
+        el('div', {style:'color:#8fb4d4;font-size:11.5px', text:[e.dry_run === null ? null : e.dry_run ? 'dry run' : 'live', e.model_tier, e.cost_eur === null ? null : eur(e.cost_eur) + ' ' + e.cost_basis, 'id ' + e.agent_id_reported, e.flags.some(f => f.code === 'DELIVERED_LATE') ? 'delivered late ' + A.formatNicosia(Date.parse(e.received_at_utc), 'time') : null].filter(Boolean).join(', ')}),
+        chips(e.flags, true)));
+      c.append(ul);
+    }
+  } else if (selTab === 'performance') {
+    const p = A.agentPerformance(store, a);
+    if (!p.total) c.append(el('div', {cls:'msg', text:'No usage or expenditure data reported. Tasks completed, success rate and costs are unavailable.'}));
+    else c.append(el('div', {cls:'grid2'},
+      cell('Reports received', String(p.total)),
+      cell('Failed reports', String(p.failed)),
+      cell('Dry runs / live runs', p.dryRuns + ' / ' + p.liveRuns + (p.total - p.dryRuns - p.liveRuns ? ' (' + (p.total - p.dryRuns - p.liveRuns) + ' not stated)' : '')),
+      cell('Model tier use', A.MODEL_TIERS.map(t => t + ' ' + p.byTier[t]).join(', ') + (p.untiered ? ', not stated ' + p.untiered : '')),
+      cell('API cost reported', p.costed ? eur(p.apiEur) + ' across ' + p.costed + ' of ' + p.total + ' reports' : 'No cost data'),
+      cell('Subscription usage (kept separate)', p.subscriptionEur ? eur(p.subscriptionEur) : 'None reported'),
+      cell('Against allowance', allowanceLine(a))));
+  } else {
+    if (cur && cur.status === 'awaiting_approval') {
+      c.append(el('div', {cls:'grid2'}, cell('Approval request', cur.approval_request ? cur.approval_request.summary : 'Details not supplied by agent'), cell('Reference', cur.approval_request && cur.approval_request.reference ? cur.approval_request.reference : 'None')));
+      c.append(el('p', {cls:'empty', text:'Display only.'}));
+    }
+    const ctl = a.controls, al = A.allowanceStatus(a);
+    c.append(el('h3', {cls:'dh', text:'Model permissions'}));
+    const pt = el('tbody'); for (const t of A.MODEL_TIERS) pt.append(el('tr', null, el('td', {text:t}), el('td', {text:PERM_TEXT[A.modelPermission(a, t)]})));
+    c.append(el('div', {cls:'tablewrap'}, el('table', {cls:'stages'}, pt)), el('p', {cls:'empty', text:'Basis: ' + ctl.permissions_basis}));
+    c.append(el('h3', {cls:'dh', text:'Expenditure allowance (EUR)'}));
+    c.append(el('div', {cls:'grid2'},
+      cell('Status', al.configured ? 'Configured (' + al.reference + ')' : al.message),
+      cell('Per task / daily / monthly', al.configured ? eur(al.per_task) + ' / ' + eur(al.daily) + ' / ' + eur(al.monthly) : 'Not configured'),
+      cell('Usage', allowanceLine(a)),
+      cell('Source repository limits (information only)', ctl.source_limits)));
+    c.append(el('h3', {cls:'dh', text:'Approval requirements'}));
+    const ar = el('ul', {cls:'plain'}); for (const r of ctl.approval_requirements) ar.append(el('li', {text:r})); c.append(ar);
+    const appr = A.APPROVALS.filter(x => x.agent_code && x.agent_code === a.code);
+    if (appr.length) {
+      c.append(el('h3', {cls:'dh', text:'Recorded approvals'}));
+      const ul = el('ul', {cls:'plain'}); for (const x of appr) ul.append(el('li', {text:x.id + ': ' + x.scope + ' Cap ' + eur(x.cap_eur) + ', ' + x.model_tier + ', approved by ' + x.approved_by + ' on ' + x.approved_at + ', status ' + x.status + '.'})); c.append(ul);
+    }
+    c.append(el('div', {cls:'msg', style:'margin-top:12px', text:'The ACC records and checks these controls; it never authorises expenditure. No remote agent controls are enabled.'}));
+  }
+}
+
+$('agentFilter').addEventListener('change', () => renderAgents(A.summarise(store, nowFn())));
+$('panelClose').addEventListener('click', closeStream);
+$('agentModal').addEventListener('click', e => { if (e.target === $('agentModal')) closeAgent(); });
+$('detailClose').addEventListener('click', closeAgent);
+
+/* Single keyboard handler for the page */
+document.addEventListener('keydown', e => {
+  if (selKey) {
+    if (e.key === 'Escape') { closeAgent(); return; }
+    if (e.key === 'Tab') {
+      const els = [...$('agentModal').querySelectorAll('button:not([disabled])')];
+      const first = els[0], last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    return;
+  }
+  if (e.key === 'Escape' && openStreamId) closeStream();
+});
+
+/* ---------- Render ---------- */
+function render(){
+  const sum = A.summarise(store, nowFn());
+  $('notice').textContent = sum.hasData
+    ? 'Showing imported agent reports only. No live agent connection; statuses older than 24 hours revert to unknown.'
+    : 'Public preview. No live agent connection: statuses are Unknown and telemetry is Not connected until genuine agent reports are available.';
+  renderKpis(sum); renderOrbitData(sum); renderActivity(); renderApprovals(sum); renderStreams(sum);
+  renderConnections(); renderExceptions(sum); renderAgents(sum);
+  if (openStreamId) openStream(openStreamId, false);
+  if (selKey) drawAgent();
+  tickClock();
+}
+
+render();
+setInterval(tickClock, 1000);
+setInterval(render, 60000);
+
+/* Test hooks */
+window.ACC_APP = { render, setClock(fn){ nowFn = fn; render(); }, openAgent, openStream };
+})();
+</script>
+</body>
+</html>

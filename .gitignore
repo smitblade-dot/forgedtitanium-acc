@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env.*
+*.pem
+*.key
+acc_data/
+acc_keys.json

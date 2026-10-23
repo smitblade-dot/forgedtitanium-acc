@@ -1,0 +1,75 @@
+{
+  "chrome": "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome",
+  "results": [
+    {
+      "check": "desktop: orbital has 00 core and six streams",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: 31 clickable Level 2 labels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: 01 above core, 04 below, 02/03 right, 05/06 left (approved layout)",
+      "ok": true,
+      "detail": "{\"00\":[720,419],\"01\":[720,253],\"02\":[859,334],\"03\":[859,495],\"04\":[720,575],\"05\":[581,495],\"06\":[581,334]}"
+    },
+    {
+      "check": "desktop: Level 2 detail opens with homed agents",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: agent detail has five sections",
+      "ok": true,
+      "detail": "Overview / Current activity / History / Performance & costs / Controls & approvals"
+    },
+    {
+      "check": "desktop: provisional agent shows no verified code",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: zero requests outside the page origin",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: only static files requested",
+      "ok": true,
+      "detail": "http://127.0.0.1:42637/, http://127.0.0.1:42637/acc_register.js, http://127.0.0.1:42637/acc_core.js"
+    },
+    {
+      "check": "desktop: no console errors or warnings",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile: no horizontal overflow",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "check": "mobile: agent detail fits the viewport",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile: no console errors or warnings",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "tablet: no horizontal overflow",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+name: Publish ACC frontend (manual, approval-gated)
+# Publishes ONLY the static files in site/ to GitHub Pages. It never runs automatically.
+# It does nothing unless BOTH are true:
+#   1. the repository variable ACC_PUBLISH_APPROVED is set to "true" by the owner, and
+#   2. the run is started manually with confirm = PUBLISH.
+# No secrets are used. The reporting backend is not part of this repository.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type PUBLISH to confirm that the owner has approved public exposure
+        required: true
+        type: string
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: ${{ vars.ACC_PUBLISH_APPROVED == 'true' && inputs.confirm == 'PUBLISH' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Tests must pass before anything is published
+        run: npm test
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
