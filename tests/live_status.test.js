@@ -150,3 +150,26 @@ test('an agent awaiting approval is shown, with its details marked Not published
   assert.match(d.querySelector('#apprCount').textContent, /1 pending/);
   assert.match(d.querySelector('#approvals').textContent, /Details are not published/);
 });
+
+test('each agent shows identity, operating stream, status, last report time and recent history together', async () => {
+  const dom = await load(); const w = dom.window, d = w.document;
+  const hist = [{ at_utc: ago(5), state: 'idle', mode: 'dry_run', delivered_late: false }, { at_utc: ago(8), state: 'active', mode: 'dry_run', delivered_late: false }];
+  w.ACC_APP.applyPublicStatus(doc([entry(CONTROLLER, 'Production Controller TI', 'idle', 5, hist), entry(MASTER, 'TI Operations Director (Master Agent)', 'failed', 20)]));
+  const c = card(d, 'Production Controller TI').textContent;
+  assert.match(c, /Production Controller TI/);                    // identity: name
+  assert.match(c, /03AA-04_Production_Controller_TI/);            // identity: code
+  assert.match(c, /Idle, \d{2}:\d{2} EEST/);                      // status and last report time
+  assert.match(c, /Verified/);
+  click(w, card(d, 'Production Controller TI'));
+  assert.match(d.querySelector('#detailPath').textContent, /Home 03AA-04, operates in 01 Travel Intelligence/);   // operating stream
+  assert.match(d.querySelector('#detailStatus').textContent, /Idle, reported 23 Oct 2026, 1\d:\d{2}/);
+  click(w, [...d.querySelectorAll('#detailTabs button')][2]);
+  const items = [...d.querySelectorAll('#detailContent .hist li')].map(li => li.textContent);
+  assert.equal(items.length, 2);                                   // sanitised recent history, newest first
+  assert.match(items[0], /Idle/); assert.match(items[1], /Active/);
+  assert.match(items[0], /dry run/);
+  click(w, d.querySelector('#detailClose'));
+  // the stream filter lists the agent under its operating stream
+  const sel = d.querySelector('#agentFilter'); sel.value = '01'; sel.dispatchEvent(new w.Event('change'));
+  assert.ok(card(d, 'Production Controller TI')); assert.equal(card(d, 'Agent SQE'), undefined);
+});
