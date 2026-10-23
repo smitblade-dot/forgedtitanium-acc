@@ -8,8 +8,12 @@ const INDEX = path.join(__dirname, '..', 'site', 'index.html');
 const R = require('../site/acc_register.js');
 const FIXED_NOW = Date.parse('2026-10-23T12:00:00Z');
 
+const opened = [];
+test.after(() => opened.forEach(d => d.window.close())); // a failing test must never leave the page clock running
+
 async function load() {
   const dom = await JSDOM.fromFile(INDEX, { runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true });
+  opened.push(dom);
   await new Promise(r => dom.window.addEventListener('load', r));
   dom.window.ACC_APP.setClock(() => FIXED_NOW);
   return dom;
