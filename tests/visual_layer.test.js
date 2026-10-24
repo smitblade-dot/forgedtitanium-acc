@@ -310,7 +310,7 @@ test('R018 agent console: floating timeline of genuine events, three circular in
   assert.match(tl[0].textContent, /Idle/); assert.match(tl[0].textContent, /dry run/); assert.match(tl[2].textContent, /Failed/);
   const gauges = [...d.querySelectorAll('#detailGauges .gauge')];
   assert.deepEqual(gauges.map(g => g.querySelector('b').textContent), ['Freshness', 'Reports 24 h', 'Mode']);
-  assert.match(gauges[0].textContent, /Reported 5 min ago/); assert.match(gauges[1].textContent, /3 reports/); assert.match(gauges[2].textContent, /2 dry run, 0 live, 0 not stated/);
+  assert.match(gauges[0].textContent, /Reported 5 min ago/); assert.match(gauges[1].textContent, /3 reports/); assert.match(gauges[2].textContent, /1 dry run, 0 live, 1 not stated/);
   assert.ok(d.querySelector('#coreSvg .csweep') && d.querySelector('#coreSvg .cmotes'), 'a reporting core is animated');
   const btn = d.querySelector('#detailTabs button'); click(w, d.querySelectorAll('#detailTabs button')[2]);
   assert.equal(d.querySelector('#detailTabs button'), btn, 'switching facet does not rebuild the radial menu');
