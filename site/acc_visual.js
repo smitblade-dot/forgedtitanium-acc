@@ -82,15 +82,15 @@ function createEarth(canvas){
       let fx = fx0[p] + shift; fx = fx - Math.floor(fx / FW) * FW;
       const x0 = fx | 0, x1 = x0 + 1 === FW ? 0 : x0 + 1, tx = fx - x0, yy = fy[p], y0 = yy | 0, ty = yy - y0, r0 = y0 * FW, r1 = r0 + FW;
       const v = (FIELD[r0 + x0] * (1 - tx) + FIELD[r0 + x1] * tx) * (1 - ty) + (FIELD[r1 + x0] * (1 - tx) + FIELD[r1 + x1] * tx) * ty;
-      const land = smooth(.4, .6, v), l = lam[p], sh = .26 + .74 * Math.pow(l, .85), rm = rim[p];
+      const land = smooth(.4, .6, v), l = lam[p], sh = .4 + .6 * Math.pow(l, .8), rm = rim[p];
       const tex = .9 + .1 * Math.sin(fx * .33) * Math.sin(yy * .41 + 1.3) + .18 * (TEX[r0 + x0] - .5);
-      let R = 6 + 26 * Math.pow(l, .8), G = 30 + 66 * Math.pow(l, .8), B = 84 + 112 * Math.pow(l, .8);          // ocean
+      let R = 12 + 40 * Math.pow(l, .8), G = 54 + 112 * Math.pow(l, .8), B = 120 + 130 * Math.pow(l, .8);          // ocean
       const sp = spec[p] * (1 - land) * .4; R += 150 * sp; G += 190 * sp; B += 235 * sp;
-      const ice = smooth(.74, .9, Math.abs(yy - 90) / 90), lR = (26 + 74 * l) * tex + 150 * ice * l, lG = (128 + 96 * l) * tex + 110 * ice * l, lB = (142 + 78 * l) * tex + 90 * ice * l;                     // lit land (holographic teal)
+      const ice = smooth(.74, .9, Math.abs(yy - 90) / 90), lR = (40 + 90 * l) * tex + 150 * ice * l, lG = (150 + 90 * l) * tex + 110 * ice * l, lB = (150 + 70 * l) * tex + 90 * ice * l;                     // lit land (holographic teal)
       R = R + (lR * sh - R) * land; G = G + (lG * sh - G) * land; B = B + (lB * sh - B) * land;
       if (land > .5 && l < .4) { const c = CITY[r0 + x0]; if (c) { const k = (1 - l / .4) * (.6 + .15 * c) * Math.max(0, 1 - 2.1 * Math.hypot(tx - .5, ty - .5)); R += 255 * k; G += 175 * k; B += 80 * k; } }
       const dist = Math.abs(fx - band), sc = Math.max(0, 1 - Math.min(dist, FW - dist) / 5) * .22 * (.4 + land);
-      R += 60 * rm * .9 + 70 * sc; G += 170 * rm * .9 + 160 * sc; B += 255 * rm * .9 + 220 * sc;
+      R += 70 * rm + 70 * sc; G += 190 * rm + 160 * sc; B += 255 * rm + 220 * sc;
       d[q] = R; d[q + 1] = G; d[q + 2] = B; d[q + 3] = a;
     }
     octx.putImageData(img, 0, 0);
