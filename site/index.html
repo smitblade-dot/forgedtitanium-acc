@@ -51,8 +51,8 @@ button,select,input{font:inherit;color:inherit}
 .nodedata{font-family:var(--body);font-size:11.5px;fill:#cfe6f5;paint-order:stroke;stroke:#010612;stroke-width:3.5px;stroke-linejoin:round}
 .badge-num{font-family:var(--display);font-weight:700;font-size:21px;fill:#fff}
 .core-num,.core-name,.core-sub,.core-st{paint-order:stroke;stroke:#010a1a;stroke-width:3.4px;stroke-linejoin:round}
-.core-num{font-family:var(--display);font-weight:700;font-size:40px}
-.core-name{font-family:var(--display);font-weight:700;font-size:18.5px;letter-spacing:.06em;fill:#fff}
+.core-num{font-family:var(--display);font-weight:700;font-size:38px}
+.core-name{font-family:var(--display);font-weight:700;font-size:16.5px;letter-spacing:.05em;fill:#fff}
 .core-sub{font-family:var(--display);font-weight:600;font-size:12.5px;letter-spacing:.16em;fill:#9fe3ff}
 .core-st{font-family:var(--body);font-size:10.5px}
 @keyframes breathe{0%,100%{opacity:.4}50%{opacity:.95}}
@@ -240,8 +240,40 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
 .cdash{transform-box:fill-box;transform-origin:center}
 .cslow{transform-box:fill-box;transform-origin:center;animation:spin 90s linear infinite}
 
+/* ACC-R018: compact header indicators, hub-and-spoke links, cost instrument */
+.hud-top{grid-template-columns:auto minmax(0,1fr) auto}
+.hudcenter{justify-self:center;display:grid;gap:7px;justify-items:center;min-width:0;max-width:100%}
+.notice{margin:0;padding:3px 14px 3px 12px;border:0;border-radius:999px;background:#06182ccc;box-shadow:inset 0 0 0 1px #2a6a9a88,0 0 14px #1a8be833;font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.1em;color:#cfeaff;text-align:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notice::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:9px;background:#5fd4ff;box-shadow:0 0 9px #5fd4ff;vertical-align:0;animation:breathe 2.4s ease-in-out infinite}
+.notice.stale{color:#ffd9a0;box-shadow:inset 0 0 0 1px #7a5a1f99}
+.notice.stale::before{background:#ffc46a;box-shadow:0 0 9px #ffc46a;animation:none}
+.kpis{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 26px;border:0;background:none}
+.kpi{padding:0;border:0;display:flex;align-items:baseline;gap:7px}
+.kpi b{font-family:var(--display);font-size:22px;font-weight:700;line-height:1;text-shadow:0 0 12px #35b6ffaa}
+.kpi b.nodata{font-size:13px;color:var(--ink-3);text-shadow:none;font-weight:600}
+.kpi span{font-family:var(--display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.kpi.alert b{color:#ffc46a;text-shadow:0 0 12px #ffb54a}
+.kpi.minor{display:none}
+.linkflow{animation:dash 2.6s linear infinite;animation-direction:reverse}
+.link{pointer-events:none}
+.costbtn{pointer-events:auto;display:grid;gap:1px;justify-items:end;text-align:right;background:none;border:0;border-right:2px solid #56cfff99;padding:2px 12px 2px 0;cursor:pointer;color:inherit}
+.costbtn:hover,.costbtn:focus-visible{border-right-color:#fff}
+.costval{font-family:var(--display);font-size:26px;font-weight:700;line-height:1.05;text-shadow:0 0 14px #35b6ffaa}
+.costval.nodata{font-size:19px;color:var(--ink-2);text-shadow:none}
+.costsub{font-family:var(--body);font-size:11.5px;color:var(--ink-3)}
+.costpanel{display:none;margin-top:8px;padding:12px 14px;text-align:left;background:linear-gradient(160deg,#08254199,#040f22ee);border-right:2px solid #56cfff;backdrop-filter:blur(8px);font-family:var(--body);pointer-events:auto;max-height:min(60vh,520px);overflow:auto;scrollbar-width:thin}
+.costpanel.open{display:block;animation:rise .3s ease-out}
+.costpanel h3{margin:12px 0 4px;font-family:var(--display);font-size:12px;letter-spacing:.18em;color:#9fe3ff;text-transform:uppercase}
+.costpanel h3:first-child{margin-top:0}
+.costrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:4px 0;border-top:1px solid #17385a;font-size:12.5px}
+.costrow:first-of-type{border-top:0}
+.costrow .v{text-align:right;font-family:var(--display);font-size:15px;font-weight:700}
+.costrow .v.nodata{font-family:var(--body);font-size:12px;font-weight:500;color:var(--ink-3)}
+.costrow small{grid-column:1 / -1;color:var(--ink-3);font-size:10.5px;line-height:1.3}
+.costproposed{margin:0 0 8px;padding:3px 8px;border:1px dashed #ffc46a;color:#ffd9a0;font-family:var(--display);font-size:11px;letter-spacing:.14em}
+
 @media (prefers-reduced-motion:reduce){
-  .spin,.dash,.cslow,.breathe,.pulsedot,.sat[data-s=working] .satpulse,.agent[data-s=working] .orb::after,.panel.show,.modal.open,.syspanel.open,.core .cring,.core .cglow,.core .cdash{animation:none!important}
+  .spin,.dash,.linkflow,.cslow,.breathe,.pulsedot,.notice::before,.sat[data-s=working] .satpulse,.agent[data-s=working] .orb::after,.panel.show,.modal.open,.syspanel.open,.core .cring,.core .cglow,.core .cdash{animation:none!important}
   .reveal,.reveal.on{transition:none}
 }
 
@@ -293,7 +325,10 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
       <h1>FORGEDTITANIUM <small>LTD</small></h1>
       <p>AGENT COMMAND CENTRE</p>
     </div>
-    <p class="notice" id="notice"></p>
+    <div class="hudcenter">
+      <p class="notice" id="notice" role="status" aria-live="polite" title="Restricted public view: only state and report times are shown. Statuses older than 24 hours revert to Unknown."></p>
+      <div class="kpis" id="kpis" aria-label="Summary figures from the register and the status feed"></div>
+    </div>
     <div class="clock" aria-label="Current time in Cyprus">
       <div class="d" id="clockDate"></div>
       <div class="t" id="clockTime"></div>
@@ -313,24 +348,25 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
       </section>
     </main>
     <div class="huds">
-      <aside class="hud hud-tl" aria-labelledby="fleetTitle">
-        <h2 id="fleetTitle">Fleet <em>from the status feed</em></h2>
-        <div class="kpis" id="kpis" aria-label="Summary figures from the register and the status feed"></div>
-      </aside>
-      <aside class="hud hud-tr" aria-labelledby="feedTitle">
-        <h2 id="feedTitle">Status feed</h2>
-        <div class="feedline" id="feedLine"></div>
+      <aside class="hud hud-tr" aria-labelledby="costTitle">
+        <h2 id="costTitle">AI cost</h2>
+        <button class="costbtn" id="costBtn" type="button" aria-expanded="false" aria-controls="costPanel">
+          <span class="costval" id="costVal">No cost data</span>
+          <span class="costsub" id="costSub">Not published</span>
+        </button>
+        <div class="costpanel" id="costPanel" role="region" aria-label="AI cost detail"></div>
+        <div class="feedline vh" id="feedLine"></div>
       </aside>
       <aside class="hud hud-bl" aria-label="Recent reported activity">
-        <h2 id="actTitle">Reported activity <em>not connected</em></h2>
+        <h2 id="actTitle">Recent activity <em>not connected</em></h2>
         <div id="activity"></div>
-        <h2 id="apprTitle" style="margin-top:10px">Approval requests <em id="apprCount"></em></h2>
-        <div id="approvals"></div>
+        <h2 id="apprTitle" class="vh">Approval requests <em id="apprCount"></em></h2>
+        <div id="approvals" class="vh"></div>
       </aside>
       <aside class="hud hud-br" aria-label="Status key and systems">
         <h2>Status key</h2>
         <ul class="keylist" id="keyList"></ul>
-        <p class="hud-note" id="orbitLegend">Moving light on a spoke: that stream has a current report. Ambient motion on the orbit is decorative. No agent-to-agent message is evidenced, so none is drawn.</p>
+        <p class="hud-note" id="orbitLegend">Radial links show the company hierarchy: every stream belongs to 00. Pulses on the links are decorative and do not represent agent communication. No agent-to-agent message is evidenced, so none is drawn.</p>
         <button class="sysbtn" id="sysBtn" type="button" aria-expanded="false" aria-controls="sysPanel">SYSTEMS</button>
         <div class="syspanel" id="sysPanel">
           <h3 id="streamTitle">Stream status</h3>
@@ -490,16 +526,16 @@ const ageOf = cur => cur ? Math.max(0, nowFn() - cur.ms) : null;
 function renderKpis(sum){
   const noRep = !sum.hasData;
   const items = [
-    [String(sum.registered), 'Registered agents', false, false],
-    [sum.verifiedCount + ' of ' + sum.registered, 'Agents verified (of listed)', false, false],
-    [noRep ? 'No reports' : sum.reportingCount + ' of ' + sum.registered, 'Agents reporting (last 24 h)', noRep, false],
-    [noRep ? 'No data' : String(sum.workingCount), 'Reported working', noRep, false],
-    [noRep ? 'No data' : String(sum.approvals.length), 'Approvals pending', noRep, false],
-    [sum.cost.hasApi ? eur(sum.cost.apiEur) : 'No cost data', sum.cost.hasApi ? 'API cost today, reported' : 'API cost today', !sum.cost.hasApi, true],
-    ['Not connected', 'System health telemetry', true, true]
+    [String(sum.registered), 'registered', 'Registered agents', false, ''],
+    [sum.verifiedCount + ' of ' + sum.registered, 'verified', 'Agents verified (of listed)', false, 'minor'],
+    [noRep ? 'No reports' : sum.reportingCount + ' of ' + sum.registered, 'reporting', 'Agents reporting (last 24 h)', noRep, ''],
+    [noRep ? 'No data' : String(sum.workingCount), 'working', 'Reported working', noRep, ''],
+    [noRep ? 'No data' : String(sum.approvals.length), 'approvals', 'Approvals pending', noRep, sum.approvals.length ? 'alert' : ''],
+    [sum.cost.hasApi ? eur(sum.cost.apiEur) : 'No cost data', 'API cost today', 'API cost today', !sum.cost.hasApi, 'minor'],
+    ['Not connected', 'system health', 'System health telemetry', true, 'minor']
   ];
   const k = $('kpis'); k.replaceChildren();
-  for (const [v, l, nd, minor] of items) k.append(el('div', {cls:'kpi' + (minor ? ' minor' : ''), 'data-kpi':l}, el('b', {cls: nd ? 'nodata' : null, text:v}), el('span', {text:l})));
+  for (const [v, short, key, nd, cls] of items) k.append(el('div', {cls:'kpi' + (cls ? ' ' + cls : ''), 'data-kpi':key, title:key}, el('b', {cls: nd ? 'nodata' : null, text:v}), el('span', {text:short})));
 }
 let lastOkMs = null;
 function renderFeed(){
@@ -585,7 +621,7 @@ function renderExceptions(){
 const C = {x:600, y:400}, R = 268, NR = 94;
 const ANGLES = {'01':-90,'02':-30,'03':30,'04':90,'05':150,'06':210};
 const ORDER = ['01','02','03','04','05','06'];
-const EARTH_R = 150, DISC_R = 96, GLOBE_R = 322;           // core ring / identity disc / the large three-dimensional Earth
+const EARTH_R = 128, DISC_R = 88, GLOBE_R = 322;           // core ring / identity disc / the large three-dimensional Earth
 const CONTENT = {x:-70, y:4, w:1340, h:792}, CONTENT_M = {x:236, y:4, w:728, h:792};
 const PHOTO = {'01':[112,68],'02':[112,50],'03':[112,65],'04':[112,46],'05':[112,65],'06':[112,28]};   // source crop sizes of assets/node-XX.jpg
 function pos(id){ const a = ANGLES[id] * Math.PI / 180; return {x: C.x + R*Math.cos(a), y: C.y + R*Math.sin(a)}; }
@@ -597,7 +633,6 @@ function shortName(n){
 }
 let orbitBuilt = false;
 const sats = new Map(), pips = new Map(), reveals = new Map(), plates = {}, particles = [];
-let spokeLive = {};
 
 function buildOrbit(){
   const svg = $('orbit');
@@ -628,31 +663,28 @@ function buildOrbit(){
 
   // perspective orbit rings (decorative)
   const rings = sv('g', {'aria-hidden':'true', fill:'none'});
-  rings.append(sv('circle', {cx:C.x, cy:C.y, r:R, stroke:'#3d9bff', 'stroke-opacity':'.5', 'stroke-width':'1.6', 'stroke-dasharray':'2 8', id:'orbitRing'}));
-  rings.append(sv('ellipse', {class:'spin', cx:C.x, cy:C.y, rx:R+50, ry:R-70, stroke:'#3aa8ff', 'stroke-opacity':'.3', 'stroke-dasharray':'1 10', 'stroke-width':'2.4'}));
-  rings.append(sv('ellipse', {class:'spin rev', cx:C.x, cy:C.y, rx:R-80, ry:R+36, stroke:'#9b6bff', 'stroke-opacity':'.28', 'stroke-dasharray':'1 12', 'stroke-width':'2.4'}));
+  rings.append(sv('ellipse', {class:'spin', cx:C.x, cy:C.y, rx:R+50, ry:R-70, stroke:'#3aa8ff', 'stroke-opacity':'.2', 'stroke-dasharray':'1 10', 'stroke-width':'2.4'}));
+  rings.append(sv('ellipse', {class:'spin rev', cx:C.x, cy:C.y, rx:R-80, ry:R+36, stroke:'#9b6bff', 'stroke-opacity':'.2', 'stroke-dasharray':'1 12', 'stroke-width':'2.4'}));
   rings.append(sv('ellipse', {cx:C.x, cy:C.y+150, rx:620, ry:150, stroke:'#1a6fd0', 'stroke-opacity':'.28'}));
   rings.append(sv('ellipse', {cx:C.x, cy:C.y+170, rx:700, ry:190, stroke:'#1a6fd0', 'stroke-opacity':'.16'}));
   svg.append(rings);
 
-  // arrowed flow arcs between neighbouring streams
-  const flows = sv('g', {'aria-hidden':'true', fill:'none', 'stroke-width':'3'});
-  const span = Math.asin(NR / R) * 180 / Math.PI + 4;
-  ORDER.forEach((id, i) => {
-    const a1 = (ANGLES[id] + span) * Math.PI/180, a2 = (ANGLES[ORDER[(i+1)%6]] - span) * Math.PI/180;
-    const p1 = {x:C.x+R*Math.cos(a1), y:C.y+R*Math.sin(a1)}, p2 = {x:C.x+R*Math.cos(a2), y:C.y+R*Math.sin(a2)};
-    flows.append(sv('path', {id:'flow'+id, d:`M${p1.x.toFixed(1)} ${p1.y.toFixed(1)} A${R} ${R} 0 0 1 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`, stroke:streamOf(id).color, 'stroke-opacity':'.85', filter:'url(#glowS)', 'marker-end':'url(#ar'+id+')'}));
-  });
-  svg.append(flows);
-
-  // spokes core <-> stream
-  const spokes = sv('g', {'aria-hidden':'true'});
+  // hub-and-spoke: every stream connects directly to 00. There is no stream-to-stream link.
+  const spokes = sv('g', {id:'links', 'aria-hidden':'true'});
   for (const id of ORDER) {
     const p = pos(id), c = streamOf(id).color, ux = (p.x - C.x)/R, uy = (p.y - C.y)/R;
-    const x1 = p.x-ux*(NR+14), y1 = p.y-uy*(NR+14), x2 = C.x+ux*(EARTH_R+8), y2 = C.y+uy*(EARTH_R+8);
-    spokes.append(sv('line', {x1:x2.toFixed(1), y1:y2.toFixed(1), x2:x1.toFixed(1), y2:y1.toFixed(1), stroke:c, 'stroke-opacity':'.55', 'stroke-dasharray':'1 6', 'stroke-linecap':'round', 'stroke-width':'2.4'}));
-    spokes.append(sv('path', {id:'spoke'+id, d:`M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}`, fill:'none', stroke:'none'}));
-    spokes.append(sv('circle', {cx:x2.toFixed(1), cy:y2.toFixed(1), r:4.5, fill:c, filter:'url(#glowS)'}));
+    const hx = C.x + ux * (DISC_R + 16), hy = C.y + uy * (DISC_R + 16), nx = p.x - ux * (NR + 12), ny = p.y - uy * (NR + 12);
+    const gid = 'lg' + id, grad = sv('linearGradient', {id:gid, gradientUnits:'userSpaceOnUse', x1:hx.toFixed(1), y1:hy.toFixed(1), x2:nx.toFixed(1), y2:ny.toFixed(1)});
+    grad.append(sv('stop', {offset:'0%', 'stop-color':'#8fe6ff'}), sv('stop', {offset:'100%', 'stop-color':c}));
+    svg.querySelector('defs').append(grad);
+    const d = `M${hx.toFixed(1)} ${hy.toFixed(1)} L${nx.toFixed(1)} ${ny.toFixed(1)}`;
+    const g = sv('g', {class:'link', 'data-stream':id});
+    g.append(sv('path', {d, fill:'none', stroke:'#010812', 'stroke-width':'11', 'stroke-opacity':'.62', 'stroke-linecap':'round'}));
+    g.append(sv('path', {d, fill:'none', stroke:'url(#'+gid+')', 'stroke-width':'14', 'stroke-opacity':'.28', 'stroke-linecap':'round', filter:'url(#glow)'}));
+    g.append(sv('path', {id:'link'+id, d, fill:'none', stroke:'url(#'+gid+')', 'stroke-width':'4.6', 'stroke-linecap':'round'}));
+    g.append(sv('path', {class:'linkflow', d, fill:'none', stroke:'#ffffff', 'stroke-opacity':'.85', 'stroke-width':'1.8', 'stroke-dasharray':'2 11', 'stroke-linecap':'round'}));
+    g.append(sv('circle', {cx:hx.toFixed(1), cy:hy.toFixed(1), r:5, fill:'#8fe6ff', filter:'url(#glowS)'}), sv('circle', {cx:nx.toFixed(1), cy:ny.toFixed(1), r:4.4, fill:c, filter:'url(#glowS)'}));
+    spokes.append(g);
   }
   svg.append(spokes);
 
@@ -736,23 +768,18 @@ function buildOrbit(){
   }
   svg.append(revealLayer);
 
-  // moving light: ambient ones are decorative; spoke ones appear only for streams with a current report
+  // subtle data pulses travel outward from 00 on every link. They are decorative, identical for all six streams and are not driven by any report.
   const pl = sv('g', {id:'particleLayer', 'aria-hidden':'true', 'pointer-events':'none'});
-  const mk = (path, color, r, speed, off, kind, stream) => {
+  const mk = (path, color, r, speed, off) => {
     if (!path || typeof path.getTotalLength !== 'function') return;
     let len = 0; try { len = path.getTotalLength(); } catch (e) { return; }
     if (!(len > 0)) return;
     const el0 = sv('circle', {r, fill:color, filter:'url(#glowS)', opacity:'0'});
-    pl.append(el0); particles.push({el:el0, path, len, speed, off, kind, stream});
+    pl.append(el0); particles.push({el:el0, path, len, speed, off});
   };
   svg.insertBefore(pl, revealLayer);
   orbitBuilt = true;
-  for (const id of ORDER) {
-    const c = streamOf(id).color;
-    for (let q = 0; q < 2; q++) mk(svg.querySelector('#flow'+id), c, 3.2, 36, q * .5, 'ambient', id);
-    for (let q = 0; q < 3; q++) mk(svg.querySelector('#spoke'+id), c, 3.4, 72, q / 3, 'spoke', id);
-  }
-  for (let q = 0; q < 10; q++) mk(svg.querySelector('#orbitRing'), '#8fdcff', 2.4, 28, q / 10, 'ambient', null);
+  for (const id of ORDER) for (let q = 0; q < 2; q++) mk(svg.querySelector('#link'+id), '#ffffff', 2.6, 34, q * .5);
   svg.querySelectorAll('.node').forEach(n => {
     n.addEventListener('click', () => openStream(n.dataset.id));
     n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openStream(n.dataset.id); } });
@@ -761,12 +788,8 @@ function buildOrbit(){
 
 function stepParticles(t){
   for (const p of particles) {
-    const live = p.kind === 'ambient' || !!spokeLive[p.stream];
-    if (!live) { p.el.setAttribute('opacity', '0'); continue; }
-    const u = (((p.off * p.len + (t / 1000) * p.speed) % p.len) + p.len) % p.len;
-    const q = p.path.getPointAtLength(u);
-    p.el.setAttribute('cx', q.x.toFixed(1)); p.el.setAttribute('cy', q.y.toFixed(1));
-    p.el.setAttribute('opacity', p.kind === 'spoke' ? '.95' : '.55');
+    const u = (((p.off * p.len + (t / 1000) * p.speed) % p.len) + p.len) % p.len, q = p.path.getPointAtLength(u), k = Math.sin(Math.PI * u / p.len);
+    p.el.setAttribute('cx', q.x.toFixed(1)); p.el.setAttribute('cy', q.y.toFixed(1)); p.el.setAttribute('opacity', (.15 + .5 * k).toFixed(2));
   }
 }
 
@@ -775,9 +798,9 @@ function renderOrbitData(sum){
   const master = sum.agents.find(x => x.agent.master);
   const cs = $('coreStatus'), ct = $('coreTime');
   if (master && master.current) {
-    cs.textContent = 'Reported: ' + STATUS_TEXT[master.current.status];
+    cs.textContent = STATUS_TEXT[master.current.status] + ' \u00b7 ' + FXH.age(nowFn() - master.current.ms);
     cs.setAttribute('fill', getComputedStyle(document.documentElement).getPropertyValue('--st-' + ({awaiting_approval:'awaiting'}[master.current.status] || master.current.status)).trim() || '#a9c6dc');
-    ct.textContent = A.formatNicosia(master.current.ms, 'time') + (pubInfo ? ', ' + FXH.age(nowFn() - master.current.ms) : ', not live');
+    ct.textContent = A.formatNicosia(master.current.ms, 'time') + (pubInfo ? '' : ', not live');
   } else {
     cs.textContent = 'Status unknown: no report';
     cs.setAttribute('fill', '#8aa8c0');
@@ -789,7 +812,6 @@ function renderOrbitData(sum){
     else if (st.operating === 0) t.textContent = 'No registered agent';
     else t.textContent = st.operating + ' agent' + (st.operating > 1 ? 's' : '') + ', ' + (st.reporting ? st.reporting + ' reporting' : 'none reporting');
   }
-  spokeLive = {};
   for (const id of ORDER) {
     const host = pips.get(id); host.replaceChildren();
     const list = sum.agents.filter(x => x.agent.stream === id).slice(0, 5), step = 17, x0 = -(list.length - 1) * step / 2;
@@ -803,7 +825,6 @@ function renderOrbitData(sum){
     s.ring.setAttribute('stroke-dasharray', x.current ? '' : '3 3');
     s.g.querySelector('.satpulse').setAttribute('stroke', col);
     s.g.querySelector('title').textContent = x.agent.name + (x.agent.code ? '' : ' (provisional)') + ', ' + (x.current ? STATUS_TEXT[st] + ', reported ' + A.formatNicosia(x.current.ms, 'time') : 'no report (Unknown)');
-    if (x.current) spokeLive[x.agent.stream] = true;
   }
 }
 
@@ -1034,6 +1055,7 @@ document.addEventListener('keydown', e => {
     }
     return;
   }
+  if (e.key === 'Escape' && $('costPanel').classList.contains('open')) { $('costBtn').click(); return; }
   if (e.key === 'Escape' && openStreamId) closeStream();
   else if (e.key === 'Escape') zoomHome();
 });
@@ -1089,6 +1111,64 @@ function loadPublicStatus(){
   return fetch(statusUrl(), {cache:'no-store', credentials:'omit'}).then(r => r.ok ? r.json() : null).then(doc => { if (doc) applyPublicStatus(doc); }).catch(() => {});
 }
 
+
+/* ---------- AI cost (proposed public projection, schema acc-public-cost/1) ---------- */
+/* Nothing here fetches anything. Until the owner approves the public fields the page has no cost document and every field reads No cost data. */
+let costDoc = null, costProposed = false;
+function validCost(d){
+  const only = (o, ks) => o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === ks.length && ks.every(k => k in o);
+  const num = v => v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1e7), cnt = v => Number.isInteger(v) && v >= 0 && v <= 1e6;
+  const sc = (x, extra) => only(x, (extra || []).concat(['api', 'subscription', 'original_currency']))
+    && only(x.api, ['state', 'amount_eur', 'costed_reports', 'completion_reports']) && ['recorded', 'no_cost_data'].includes(x.api.state) && num(x.api.amount_eur) && cnt(x.api.costed_reports) && cnt(x.api.completion_reports)
+    && ((x.api.state === 'recorded') === (x.api.amount_eur !== null)) && ((x.api.state === 'recorded') === (x.api.costed_reports > 0))
+    && only(x.subscription, ['state', 'amount_eur', 'costed_reports']) && ['recorded', 'no_cost_data'].includes(x.subscription.state) && num(x.subscription.amount_eur) && cnt(x.subscription.costed_reports) && ((x.subscription.state === 'recorded') === (x.subscription.amount_eur !== null))
+    && only(x.original_currency, ['state', 'currency', 'amount', 'reports', 'converted']) && ['recorded', 'no_cost_data'].includes(x.original_currency.state) && x.original_currency.converted === false
+    && (x.original_currency.state === 'recorded' ? x.original_currency.currency === 'USD' : x.original_currency.currency === null) && num(x.original_currency.amount) && cnt(x.original_currency.reports);
+  if (!only(d, ['schema', 'generated_at_utc', 'currency', 'time_zone', 'evidence', 'today', 'month', 'by_agent', 'by_model_tier'])) return false;
+  if (d.schema !== 'acc-public-cost/1' || d.currency !== 'EUR' || d.time_zone !== 'Europe/Nicosia' || !PUB_TS.test(d.generated_at_utc)) return false;
+  if (!only(d.evidence, ['kind', 'provider_confirmed', 'note', 'subscription_note']) || d.evidence.kind !== 'agent_execution_records' || d.evidence.provider_confirmed !== false || typeof d.evidence.note !== 'string' || d.evidence.note.length > 120 || typeof d.evidence.subscription_note !== 'string' || d.evidence.subscription_note.length > 120) return false;
+  if (!sc(d.today, ['date']) || !/^\d{4}-\d{2}-\d{2}$/.test(d.today.date) || !sc(d.month, ['month']) || !/^\d{4}-\d{2}$/.test(d.month.month)) return false;
+  if (!Array.isArray(d.by_agent) || d.by_agent.length > 50 || !Array.isArray(d.by_model_tier) || d.by_model_tier.length !== 4) return false;
+  return d.by_agent.every(a => only(a, ['agent_id', 'name', 'today', 'month']) && /^03AA-[0-9]{2}_[A-Za-z0-9_]{1,80}$/.test(a.agent_id) && typeof a.name === 'string' && a.name.length <= 80 && !/[<>]/.test(a.name) && sc(a.today) && sc(a.month))
+    && d.by_model_tier.every((t, i) => only(t, ['tier', 'today', 'month']) && t.tier === ['code', 'haiku', 'sonnet', 'opus'][i] && sc(t.today) && sc(t.month));
+}
+function applyPublicCost(doc, opts){
+  costDoc = validCost(doc) ? doc : null; costProposed = !!(costDoc && opts && opts.proposed);
+  renderCost(); return !!costDoc;
+}
+const TIER_LABEL = {code:'No model call (code only)', haiku:'Haiku', sonnet:'Sonnet', opus:'Opus'};
+function money(x){ return x.state === 'recorded' ? eur(x.amount_eur) : null; }
+function costRow(label, value, note){
+  return el('div', {cls:'costrow'}, el('span', {text:label}), el('span', {cls:'v' + (value === null ? ' nodata' : ''), text: value === null ? 'No cost data' : value}), note ? el('small', {text:note}) : null);
+}
+function coverage(x){ return x.state === 'recorded' ? x.costed_reports + ' of ' + x.completion_reports + ' completion reports carried a cost' : (x.completion_reports ? x.completion_reports + ' completion report' + (x.completion_reports === 1 ? '' : 's') + ', none carried a cost' : 'no reports in this period'); }
+function renderCost(){
+  const panel = $('costPanel'), val = $('costVal'), sub = $('costSub'); panel.replaceChildren();
+  const d = costDoc;
+  if (!d) {
+    val.textContent = 'No cost data'; val.classList.add('nodata'); sub.textContent = 'Not published';
+    panel.append(el('h3', {text:'Today'}), costRow('API expenditure', null), el('h3', {text:'Month to date'}), costRow('API expenditure', null),
+      el('h3', {text:'By agent'}), costRow('All agents', null), el('h3', {text:'By model'}), costRow('All models', null),
+      el('h3', {text:'Original currency'}), costRow('Amounts as reported', null), el('h3', {text:'Subscription usage (kept separate)'}), costRow('Subscription', null),
+      el('p', {cls:'empty', text:'Public cost fields are awaiting the owner\u2019s approval. Nothing is estimated from activity, and no zero is shown where nothing was reported.'}));
+    return;
+  }
+  const t = d.today.api;
+  val.classList.toggle('nodata', t.state !== 'recorded');
+  val.textContent = t.state === 'recorded' ? eur(t.amount_eur) : 'No cost data';
+  sub.textContent = t.state === 'recorded' ? 'today \u00b7 ' + t.costed_reports + ' of ' + t.completion_reports + ' reports' : 'today';
+  if (costProposed) panel.append(el('div', {cls:'costproposed', text:'PROPOSED FIELDS: NOT PUBLISHED'}));
+  panel.append(el('h3', {text:'Today, ' + d.today.date}), costRow('API expenditure', money(d.today.api), coverage(d.today.api)));
+  panel.append(el('h3', {text:'Month to date, ' + d.month.month}), costRow('API expenditure', money(d.month.api), coverage(d.month.api)));
+  panel.append(el('h3', {text:'By agent (today)'}));
+  for (const a of d.by_agent) panel.append(costRow(a.name, money(a.today.api), a.today.api.state === 'recorded' ? 'month to date ' + eur(a.month.api.amount_eur) : null));
+  panel.append(el('h3', {text:'By model (reported tier, today)'}));
+  for (const m of d.by_model_tier) panel.append(costRow(TIER_LABEL[m.tier], money(m.today.api), m.today.api.state === 'recorded' ? 'month to date ' + eur(m.month.api.amount_eur) : null));
+  panel.append(el('h3', {text:'Original currency'}), costRow('As reported, not converted', d.today.original_currency.state === 'recorded' ? d.today.original_currency.currency + ' ' + d.today.original_currency.amount : null, d.today.original_currency.state === 'recorded' ? d.today.original_currency.reports + ' report' + (d.today.original_currency.reports === 1 ? '' : 's') : null));
+  panel.append(el('h3', {text:'Subscription usage (kept separate)'}), costRow('Subscription', d.today.subscription.state === 'recorded' ? eur(d.today.subscription.amount_eur) : null, 'Never added to API cost'));
+  panel.append(el('p', {cls:'empty', text:d.evidence.note + '. Generated ' + A.formatNicosia(Date.parse(d.generated_at_utc), 'datetime') + '.'}));
+}
+$('costBtn').addEventListener('click', () => { const p = $('costPanel'), open = !p.classList.contains('open'); p.classList.toggle('open', open); $('costBtn').setAttribute('aria-expanded', String(open)); });
 
 /* ---------- Camera, Earth and backdrop (decorative layer, see acc_visual.js) ---------- */
 const FXH = { age: ms => window.ACC_FX ? window.ACC_FX.ageText(ms) : '' };
@@ -1166,12 +1246,11 @@ function initFx(){
 /* ---------- Render ---------- */
 function render(){
   const sum = A.summarise(store, nowFn());
-  $('notice').textContent = sum.hasData
-    ? 'Restricted public view of reports received by the ACC service' + (pubInfo && pubInfo.generated ? ' (generated ' + A.formatNicosia(Date.parse(pubInfo.generated), 'time') + ')' : '') + '. Only state and report times are shown; statuses older than 24 hours revert to Unknown.'
-    : 'No agent reports available. Statuses are Unknown and telemetry is Not connected until genuine agent reports are available.';
-  if (pubInfo && pubInfo.generated && nowFn() - Date.parse(pubInfo.generated) > FEED_STALE_MS)
-    $('notice').textContent += ' The status feed has not refreshed since ' + A.formatNicosia(Date.parse(pubInfo.generated), 'time') + ', so these are the last known reports.';
-  renderKpis(sum); renderFeed(); renderKey(); renderActivity(); renderApprovals(sum); renderStreams(sum);
+  const stale = !!(pubInfo && pubInfo.generated && nowFn() - Date.parse(pubInfo.generated) > FEED_STALE_MS);
+  $('notice').textContent = lastOkMs ? 'Last synchronised: ' + A.formatNicosia(lastOkMs, 'clock') + ' ' + A.tzLabel(lastOkMs) + (stale ? ' \u00b7 feed stale' : '') : 'Not synchronised';
+  $('notice').classList.toggle('stale', stale || !lastOkMs);
+  const ap = $('approvals'), apt = $('apprTitle'); ap.classList.toggle('vh', !sum.approvals.length); apt.classList.toggle('vh', !sum.approvals.length);
+  renderKpis(sum); renderCost(); renderFeed(); renderKey(); renderActivity(); renderApprovals(sum); renderStreams(sum);
   renderConnections(); renderExceptions(); renderOrbitData(sum); renderAgents(sum);
   if (openStreamId) openStream(openStreamId, false);
   if (selKey) drawAgent();
@@ -1188,7 +1267,7 @@ setInterval(render, 60000);
 setInterval(loadPublicStatus, 60000);
 
 /* Test hooks */
-window.ACC_APP = { render, setClock(fn){ nowFn = fn; render(); }, openAgent, openStream, applyPublicStatus };
+window.ACC_APP = { render, setClock(fn){ nowFn = fn; render(); }, openAgent, openStream, applyPublicStatus, applyPublicCost };
 })();
 </script>
 </body>

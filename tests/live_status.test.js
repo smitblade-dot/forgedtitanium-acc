@@ -31,7 +31,9 @@ test('committed status.json is a valid empty document and leaves everything Unkn
   const committed = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'site', 'status.json'), 'utf8'));
   const dom = await load(); const w = dom.window, d = w.document;
   assert.equal(w.ACC_APP.applyPublicStatus(committed), false, 'no data, so not connected');
-  assert.match(d.querySelector('#notice').textContent, /No agent reports available/);
+  assert.match(d.querySelector('#notice').textContent, /^Last synchronised: \d{2}:\d{2}:\d{2} EEST$/, 'a valid empty document is a successful synchronisation');
+  assert.equal(d.querySelector('.kpi[data-kpi="Agents reporting (last 24 h)"] b').textContent, 'No reports', 'with no reports');
+  const dom2 = await load(); assert.equal(dom2.window.document.querySelector('#notice').textContent, 'Not synchronised', 'before any document has been received');
   for (const c of d.querySelectorAll('#agentGrid .agent')) assert.match(c.textContent, /Unknown, no report/);
 });
 
@@ -180,14 +182,19 @@ test('each agent shows identity, operating stream, status, last report time and 
   assert.ok(card(d, 'Production Controller TI')); assert.equal(card(d, 'Agent SQE'), undefined);
 });
 
-test('a status feed that stops refreshing is called out, with the time labelled', async () => {
+test('the compact synchronisation indicator replaces the long notice and still calls out a stale feed, with the time labelled', async () => {
   const dom = await load(); const w = dom.window, d = w.document;
   const stale = doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'idle', 30)]);
   stale.generated_at_utc = ago(20);
   w.ACC_APP.applyPublicStatus(stale);
-  assert.match(d.querySelector('#notice').textContent, /The status feed has not refreshed since \d{2}:\d{2} EEST/);
+  const n = d.querySelector('#notice');
+  assert.match(n.textContent, /^Last synchronised: \d{2}:\d{2}:\d{2} EEST \u00b7 feed stale$/);
+  assert.ok(n.classList.contains('stale'));
   w.ACC_APP.applyPublicStatus(doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'idle', 3)]));
-  assert.doesNotMatch(d.querySelector('#notice').textContent, /has not refreshed/);
+  assert.match(n.textContent, /^Last synchronised: \d{2}:\d{2}:\d{2} EEST$/);
+  assert.ok(!n.classList.contains('stale'));
+  assert.doesNotMatch(d.body.textContent, /Restricted public view of reports received by the ACC service/, 'the prominent paragraph is gone');
+  assert.match(n.getAttribute('title'), /Statuses older than 24 hours revert to Unknown/, 'the restriction is kept as a tooltip and in the footer');
 });
 
 test('every displayed time is Europe/Nicosia and explicitly labelled EEST in summer and EET after the 25 Oct 2026 change', async () => {
