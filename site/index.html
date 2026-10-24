@@ -189,45 +189,62 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
 .close{position:absolute;right:12px;top:10px;border:1px solid #55748c;border-radius:50%;width:32px;height:32px;background:#0c2038cc;color:#fff;cursor:pointer;font-size:19px;line-height:1}
 .close:hover{border-color:#fff;box-shadow:0 0 12px #62cfff}
 
-/* Agent command interface: radial holographic console */
-.modal{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:14px;background:radial-gradient(ellipse at 38% 50%,#07264aee,#010712f4 70%);backdrop-filter:blur(7px)}
+/* Agent command interface: a holographic console. A core, radial navigation, floating activity and a floating facet card; no boxes. */
+.modal{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:10px;background:radial-gradient(ellipse at 50% 50%,#07264aea,#010712f6 72%);backdrop-filter:blur(7px)}
 .modal.open{display:flex;animation:rise .35s ease-out}
-.detail{position:relative;width:min(1560px,100%);height:min(900px,calc(100vh - 28px));display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);align-items:center;gap:10px}
-.consolebar{position:absolute;left:4px;top:2px;right:4px;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--display)}
+.modal.open .detail{animation:consoleIn .6s cubic-bezier(.16,1,.3,1)}
+@keyframes consoleIn{from{opacity:0;transform:scale(.9);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+.detail{position:relative;width:min(1600px,100%);height:min(940px,calc(100vh - 20px))}
+.consolebar{position:absolute;left:8px;top:4px;right:8px;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--display)}
 .crumb{background:none;border:0;border-bottom:1px solid #56cfff55;color:#9fe3ff;cursor:pointer;font-weight:700;letter-spacing:.14em;font-size:12.5px;padding:4px 2px;text-transform:uppercase}
 .crumb:hover{color:#fff;border-color:#fff}
 .consolebar .sep{color:#56cfff88}
 .detail .close{position:static;margin-left:auto;width:36px;height:36px}
-.cx{position:relative;width:min(900px,100%,calc(100vh - 70px));aspect-ratio:1;justify-self:center;align-self:center}
+.cx{position:absolute;left:50%;top:51%;transform:translate(-50%,-50%);width:max(420px,min(780px,calc(100vw - 740px),calc(100vh - 120px)));aspect-ratio:1}
 .cx > svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .coretext{position:absolute;left:50%;top:55%;width:36%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
-.coretext h2{margin:0 0 3px;font-family:var(--display);font-size:clamp(15px,1.85vw,26px);line-height:1.08;letter-spacing:.03em;text-shadow:0 0 16px #35b6ffaa}
-.coretext .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(6.5px,.72vw,10px);color:var(--ink-2);word-break:break-all;line-height:1.2}
-.coretext .st{display:block;margin-top:8px;font-family:var(--display);font-size:clamp(15px,1.7vw,24px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 14px currentColor}
-.coretext .fresh-line{margin-top:3px;font-size:clamp(9.5px,.95vw,12.5px);color:var(--ink-2);font-family:var(--body)}
-.caption{position:absolute;left:50%;bottom:-.5%;transform:translateX(-50%);text-align:center;width:70%;pointer-events:none}
-.caption .path{font-family:var(--display);font-size:clamp(9px,1vw,12.5px);letter-spacing:.16em;color:#9fe3ff;text-transform:uppercase}
-.pane-status{margin:-4px 0 12px;font-size:12.5px;color:var(--ink-2);font-family:var(--body);line-height:1.4}
+.coretext h2{margin:0 0 3px;font-family:var(--display);font-size:clamp(14px,1.7vw,24px);line-height:1.08;letter-spacing:.03em;text-shadow:0 0 16px #35b6ffaa}
+.coretext .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(6px,.66vw,9.5px);color:var(--ink-2);word-break:break-all;line-height:1.2}
+.coretext .st{display:block;margin-top:8px;font-family:var(--display);font-size:clamp(14px,1.55vw,22px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 14px currentColor}
+.coretext .fresh-line{margin-top:3px;font-size:clamp(9px,.9vw,12px);color:var(--ink-2);font-family:var(--body)}
+.caption{position:absolute;left:50%;bottom:-.5%;transform:translateX(-50%);text-align:center;width:80%;pointer-events:none}
+.caption .path{font-family:var(--display);font-size:clamp(9px,.95vw,12.5px);letter-spacing:.16em;color:#9fe3ff;text-transform:uppercase}
 .tabs{position:absolute;inset:0;margin:0;padding:0}
-.tabs button{position:absolute;width:19%;aspect-ratio:1;transform:translate(-50%,-50%);display:grid;place-items:center;align-content:center;gap:2px;border-radius:50%;border:1.5px solid #3b8fc4;background:radial-gradient(circle at 36% 28%,#1b5a8a99,#04122899 70%);color:#cfeaff;cursor:pointer;font-family:var(--display);font-weight:700;letter-spacing:.07em;font-size:clamp(9.5px,1.1vw,13px);line-height:1.1;text-transform:uppercase;box-shadow:0 0 18px #1a8be855,inset 0 0 14px #1a8be833;transition:box-shadow .3s,border-color .3s,transform .3s}
+.tabs button{position:absolute;width:19%;aspect-ratio:1;transform:translate(-50%,-50%);display:grid;place-items:center;align-content:center;gap:2px;border-radius:50%;border:1.5px solid #3b8fc4;background:radial-gradient(circle at 36% 28%,#1b5a8a99,#04122899 70%);color:#cfeaff;cursor:pointer;font-family:var(--display);font-weight:700;letter-spacing:.07em;font-size:clamp(9px,1vw,12.5px);line-height:1.1;text-transform:uppercase;box-shadow:0 0 18px #1a8be855,inset 0 0 14px #1a8be833;transition:box-shadow .35s,border-color .35s,transform .35s,background .35s}
 .tabs button svg{width:34%;height:auto;overflow:visible}
-.tabs button:hover{border-color:#9fe8ff;box-shadow:0 0 26px #4fc6ff99,inset 0 0 18px #4fc6ff55}
+.tabs button:hover,.tabs button:focus-visible{border-color:#9fe8ff;box-shadow:0 0 26px #4fc6ff99,inset 0 0 18px #4fc6ff55;transform:translate(-50%,-50%) scale(1.06)}
 .tabs button[aria-selected=true]{border-color:#fff;color:#fff;background:radial-gradient(circle at 36% 28%,#2a82bccc,#0a2a4acc 70%);box-shadow:0 0 34px #62cfffcc,inset 0 0 20px #62cfff66}
-.detailpane{position:relative;align-self:center;max-height:calc(100% - 56px);overflow:auto;padding:18px 22px 20px;border-left:2px solid #56cfff;background:linear-gradient(100deg,#06182cee,#06122899 80%,#06122800);scrollbar-width:thin;margin-top:36px}
+.floatl{position:absolute;left:1.2%;top:52%;transform:translateY(-50%);width:min(290px,19vw);font-family:var(--display)}
+.floatr{position:absolute;right:1.2%;top:52%;transform:translateY(-50%);width:min(390px,26vw);display:grid;gap:16px}
+.floatl h3.ph{margin:0 0 10px}
+.tl{list-style:none;margin:0;padding:0 0 0 20px;position:relative}
+.tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:1px;background:linear-gradient(#56cfffcc,#56cfff11)}
+.tl li{position:relative;padding:5px 0 9px;font-family:var(--body);font-size:12.5px;line-height:1.35;animation:rise .5s ease-out both}
+.tl li svg{position:absolute;left:-21px;top:5px;width:18px;height:18px;overflow:visible}
+.tl li b{display:block;font-family:var(--display);font-size:13px;letter-spacing:.06em;color:#fff}
+.tl li span{color:var(--ink-2)}
+.tl li.dim{opacity:.55}
+.detailpane{position:relative;overflow:auto;max-height:calc(min(940px,100vh - 20px) - 330px);padding:14px 4px 6px 20px;border-left:2px solid #56cfff;background:linear-gradient(100deg,#06182cd6,#06122855 85%,#06122800);scrollbar-width:thin;animation:rise .45s ease-out}
 .detailpane::before{content:"";position:absolute;left:0;top:0;width:46px;height:2px;background:#9fe8ff;box-shadow:0 0 12px #62cfff}
-.detailpane h3.ph{margin:0 0 10px;font-family:var(--display);font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:#bfeaff;text-shadow:0 0 12px #35b6ff88}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px}
-.cell{border-top:1px solid #2b6a96;padding:6px 0 0}
-.cell label{display:block;font-family:var(--display);font-size:11px;letter-spacing:.16em;color:#8eb9d4;margin-bottom:3px;text-transform:uppercase}
-.cell span{font-size:14px;overflow-wrap:anywhere}
+h3.ph{margin:0 0 8px;font-family:var(--display);font-size:19px;letter-spacing:.14em;text-transform:uppercase;color:#bfeaff;text-shadow:0 0 12px #35b6ff88}
+.gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;justify-items:center}
+.gauge{display:grid;justify-items:center;gap:2px;text-align:center;font-family:var(--display)}
+.gauge svg{width:92px;height:92px;overflow:visible}
+.gauge b{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fe3ff}
+.gauge small{font-family:var(--body);font-size:10.5px;color:var(--ink-3);line-height:1.2;max-width:116px}
+.pane-status{margin:-2px 0 10px;font-size:12px;color:var(--ink-2);font-family:var(--body);line-height:1.4}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}
+.cell{border-top:1px solid #2b6a96;padding:5px 0 0}
+.cell label{display:block;font-family:var(--display);font-size:10.5px;letter-spacing:.16em;color:#8eb9d4;margin-bottom:2px;text-transform:uppercase}
+.cell span{font-size:13.5px;overflow-wrap:anywhere}
 .cell.wide{grid-column:1 / -1}
-.msg{border-left:2px solid #54b4e8;padding:10px 14px;background:#0a1e3699;color:#c4d7e9;font-size:13.5px}
+.msg{border-left:2px solid #54b4e8;padding:9px 12px;background:#0a1e3699;color:#c4d7e9;font-size:13px}
 .hist{list-style:none;margin:0;padding:0 0 0 12px;border-left:1px solid #3b8fc455}
-.hist li{padding:8px 0 8px 14px;border-top:1px solid #17385a;font-size:13px;position:relative}
+.hist li{padding:7px 0 7px 14px;border-top:1px solid #17385a;font-size:12.5px;position:relative}
 .hist li:first-child{border-top:0}
-.hist li::before{content:"";position:absolute;left:-18px;top:14px;width:9px;height:9px;border-radius:50%;background:#05122a;border:2px solid #62cfff;box-shadow:0 0 8px #62cfff}
+.hist li::before{content:"";position:absolute;left:-18px;top:13px;width:9px;height:9px;border-radius:50%;background:#05122a;border:2px solid #62cfff;box-shadow:0 0 8px #62cfff}
 .spark{display:block;width:100%;height:56px;margin:10px 0 2px;overflow:visible}
-.plain{margin:0;padding-left:18px;font-size:13px;color:#c4d7e9}.plain li{padding:2px 0}
+.plain{margin:0;padding-left:18px;font-size:12.5px;color:#c4d7e9}.plain li{padding:2px 0}
 .fbar{height:5px;border-radius:3px;background:#12324f;overflow:hidden;margin-top:6px}
 .fbar i{display:block;height:100%;background:linear-gradient(90deg,#2a8be8,#7fe4ff);box-shadow:0 0 10px #62cfff}
 
@@ -239,6 +256,8 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
 .cring{transform-box:fill-box;transform-origin:center;opacity:0}
 .cdash{transform-box:fill-box;transform-origin:center}
 .cslow{transform-box:fill-box;transform-origin:center;animation:spin 90s linear infinite}
+.csweep{transform-box:fill-box;transform-origin:center;animation:spin 14s linear infinite}
+.cmotes{transform-box:fill-box;transform-origin:center;animation:spin 46s linear infinite reverse}
 
 /* ACC-R018: compact header indicators, hub-and-spoke links, cost instrument */
 .hud-top{grid-template-columns:auto minmax(0,1fr) auto}
@@ -261,7 +280,8 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
 .costval{font-family:var(--display);font-size:26px;font-weight:700;line-height:1.05;text-shadow:0 0 14px #35b6ffaa}
 .costval.nodata{font-size:19px;color:var(--ink-2);text-shadow:none}
 .costsub{font-family:var(--body);font-size:11.5px;color:var(--ink-3)}
-.costpanel{display:none;margin-top:8px;padding:12px 14px;text-align:left;background:linear-gradient(160deg,#08254199,#040f22ee);border-right:2px solid #56cfff;backdrop-filter:blur(8px);font-family:var(--body);pointer-events:auto;max-height:min(60vh,520px);overflow:auto;scrollbar-width:thin}
+.hud-tr{z-index:8}
+.costpanel{display:none;margin:8px 0 0 auto;width:min(340px,100%);padding:12px 14px;text-align:left;background:linear-gradient(160deg,#082541f5,#030d1efa);border-right:2px solid #56cfff;backdrop-filter:blur(8px);font-family:var(--body);pointer-events:auto;max-height:min(60vh,520px);overflow:auto;scrollbar-width:thin}
 .costpanel.open{display:block;animation:rise .3s ease-out}
 .costpanel h3{margin:12px 0 4px;font-family:var(--display);font-size:12px;letter-spacing:.18em;color:#9fe3ff;text-transform:uppercase}
 .costpanel h3:first-child{margin-top:0}
@@ -273,7 +293,7 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
 .costproposed{margin:0 0 8px;padding:3px 8px;border:1px dashed #ffc46a;color:#ffd9a0;font-family:var(--display);font-size:11px;letter-spacing:.14em}
 
 @media (prefers-reduced-motion:reduce){
-  .spin,.dash,.linkflow,.cslow,.breathe,.pulsedot,.notice::before,.sat[data-s=working] .satpulse,.agent[data-s=working] .orb::after,.panel.show,.modal.open,.syspanel.open,.core .cring,.core .cglow,.core .cdash{animation:none!important}
+  .spin,.dash,.linkflow,.cslow,.csweep,.cmotes,.tl li,.detailpane,.modal.open .detail,.breathe,.pulsedot,.notice::before,.sat[data-s=working] .satpulse,.agent[data-s=working] .orb::after,.panel.show,.modal.open,.syspanel.open,.core .cring,.core .cglow,.core .cdash{animation:none!important}
   .reveal,.reveal.on{transition:none}
 }
 
@@ -290,13 +310,13 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
   .stage{height:min(72vw,78vh);min-height:420px}
   .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
-@media (max-width:900px){
+@media (max-width:1100px){
   #crumbAgent,.consolebar .sep + .crumb + .sep{display:none}
-  .cx{margin-bottom:64px}
-  .caption{bottom:-60px;width:94%}
-  .detail{grid-template-columns:1fr;height:auto;max-height:calc(100vh - 20px);overflow:auto;align-items:start;padding-top:50px}
-  .detail .cx{width:min(560px,100%)}
-  .detailpane{margin-top:0;max-height:none}
+  .detail{height:auto;max-height:calc(100vh - 20px);overflow:auto;padding:52px 6px 12px;display:grid;gap:16px;justify-items:center}
+  .cx{position:relative;left:auto;top:auto;transform:none;width:min(600px,100%);margin-bottom:62px}
+  .caption{bottom:-58px;width:94%}
+  .floatl,.floatr{position:static;transform:none;width:min(640px,100%)}
+  .detailpane{max-height:none}
 }
 @media (max-width:640px){
   .hud-top{grid-template-columns:1fr auto;padding:12px 14px 4px}
@@ -313,6 +333,7 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
   .dockfilter{display:none}
   .grid2{grid-template-columns:1fr}
   .tabs button{width:22%}
+  .gauge svg{width:78px;height:78px}
   .agent{width:104px}
 }
 </style>
@@ -418,11 +439,15 @@ select.ctl{border:1px solid #2a6a9a;border-radius:8px;background:#06182cd9;color
       <div class="caption"><div class="path" id="detailPath"></div><div id="detailChips"></div></div>
       <nav class="tabs" id="detailTabs" aria-label="Agent information"></nav>
     </div>
-    <section class="detailpane" id="detailPane" aria-live="polite">
-      <h3 class="ph" id="detailPaneTitle"></h3>
-      <div class="pane-status" id="detailStatus"></div>
-      <div id="detailContent"></div>
-    </section>
+    <aside class="floatl" id="detailTimeline" aria-label="Recent reported activity"></aside>
+    <div class="floatr">
+      <section class="detailpane" id="detailPane" aria-live="polite">
+        <h3 class="ph" id="detailPaneTitle"></h3>
+        <div class="pane-status" id="detailStatus"></div>
+        <div id="detailContent"></div>
+      </section>
+      <div class="gauges" id="detailGauges" aria-label="Circular status indicators"></div>
+    </div>
   </section>
 </div>
 
@@ -621,7 +646,7 @@ function renderExceptions(){
 const C = {x:600, y:400}, R = 268, NR = 94;
 const ANGLES = {'01':-90,'02':-30,'03':30,'04':90,'05':150,'06':210};
 const ORDER = ['01','02','03','04','05','06'];
-const EARTH_R = 128, DISC_R = 88, GLOBE_R = 322;           // core ring / identity disc / the large three-dimensional Earth
+const EARTH_R = 128, DISC_R = 88, GLOBE_R = 345;           // core ring / identity disc / the large three-dimensional Earth
 const CONTENT = {x:-70, y:4, w:1340, h:792}, CONTENT_M = {x:236, y:4, w:728, h:792};
 const PHOTO = {'01':[112,68],'02':[112,50],'03':[112,65],'04':[112,46],'05':[112,65],'06':[112,28]};   // source crop sizes of assets/node-XX.jpg
 function pos(id){ const a = ANGLES[id] * Math.PI / 180; return {x: C.x + R*Math.cos(a), y: C.y + R*Math.sin(a)}; }
@@ -657,7 +682,6 @@ function buildOrbit(){
     defs.append(g);
     defs.append(sv('clipPath', {id:'nc'+s.id}, sv('circle', {cx:p.x, cy:p.y, r:NR-3})));
     defs.append(sv('mask', {id:'nm'+s.id, maskUnits:'userSpaceOnUse', x, y, width:w, height:h}, sv('rect', {x, y, width:w, height:h, fill:'url(#fadeBoth)'})));
-    defs.append(sv('marker', {id:'ar'+s.id, viewBox:'0 0 10 10', refX:'6', refY:'5', markerWidth:'7', markerHeight:'7', orient:'auto-start-reverse'}, sv('path', {d:'M0 0 L10 5 L0 10 Z', fill:s.color})));
   }
   svg.append(defs);
 
@@ -810,7 +834,10 @@ function renderOrbitData(sum){
     const t = $('nd' + st.stream.id);
     if (st.stream.id === '03') t.textContent = st.homed + ' agents homed here';
     else if (st.operating === 0) t.textContent = 'No registered agent';
-    else t.textContent = st.operating + ' agent' + (st.operating > 1 ? 's' : '') + ', ' + (st.reporting ? st.reporting + ' reporting' : 'none reporting');
+    else {
+      const latest = sum.agents.filter(x => x.agent.stream === st.stream.id && x.current).reduce((m, x) => Math.max(m, x.current.ms), 0);
+      t.textContent = st.operating + ' agent' + (st.operating > 1 ? 's' : '') + ', ' + (st.reporting ? st.reporting + ' reporting' : 'none reporting') + (latest ? ' \u00b7 ' + FXH.ageShort(nowFn() - latest) : '');
+    }
   }
   for (const id of ORDER) {
     const host = pips.get(id); host.replaceChildren();
@@ -914,28 +941,36 @@ const FACET_ICON = {
 };
 let selKey = null, selTab = 'activity', prevFocus = null;
 function cell(l, v, wide){ return el('div', {cls:'cell' + (wide ? ' wide' : '')}, el('label', {text:l}), el('span', {text:v})); }
+let agentZoom = false;
 function openAgent(key){
   if (!agentByKey(key)) return;
-  prevFocus = document.activeElement; selKey = key; selTab = 'activity';
+  if (!camId && !openStreamId) { agentZoom = true; zoomTo(agentByKey(key).stream); }
+  prevFocus = document.activeElement; selKey = key; selTab = 'activity'; coreSig = '';
   $('agentModal').classList.add('open'); $('agentModal').setAttribute('aria-hidden', 'false');
   drawAgent(); $('detailClose').focus();
 }
 function closeAgent(){
   $('agentModal').classList.remove('open'); $('agentModal').setAttribute('aria-hidden', 'true'); selKey = null;
+  if (agentZoom && !openStreamId) zoomHome();
+  agentZoom = false;
   if (prevFocus && prevFocus.isConnected) prevFocus.focus();
 }
-function buildCore(a, cur){
-  const svg = $('coreSvg'); svg.replaceChildren();
+let coreSig = '';
+function buildCore(a, cur, evs){
+  const svg = $('coreSvg');
   const st = cur ? cur.status : 'none', col = stateColor(st, streamOf(a.stream).color), c = 350;
   const age = ageOf(cur), frac = cur ? Math.max(0, 1 - Math.min(age, A.STALE_AFTER_MS) / A.STALE_AFTER_MS) : 0;
+  const sig = [selKey, st, cur ? Math.round(frac * 200) : 'x'].join('|');
+  if (sig === coreSig) return {col, st, nav:FACETS.map((f, i) => { const ang = (-90 + i * 72) * Math.PI / 180; return {x:c + 262 * Math.cos(ang), y:c + 262 * Math.sin(ang), ang}; })};
+  coreSig = sig; svg.replaceChildren();
   const defs = sv('defs');
   const gr = sv('radialGradient', {id:'cDisc', cx:'50%', cy:'40%', r:'70%'});
-  gr.append(sv('stop', {offset:'0%', 'stop-color':col, 'stop-opacity':'.30'}), sv('stop', {offset:'55%', 'stop-color':'#08254a', 'stop-opacity':'.78'}), sv('stop', {offset:'100%', 'stop-color':'#020a1a', 'stop-opacity':'.92'}));
+  gr.append(sv('stop', {offset:'0%', 'stop-color':col, 'stop-opacity':'.34'}), sv('stop', {offset:'55%', 'stop-color':'#08254a', 'stop-opacity':'.78'}), sv('stop', {offset:'100%', 'stop-color':'#020a1a', 'stop-opacity':'.92'}));
   defs.append(gr, sv('filter', {id:'cGlow', x:'-30%', y:'-30%', width:'160%', height:'160%'}, sv('feGaussianBlur', {stdDeviation:'7', result:'b'}), sv('feMerge', {}, sv('feMergeNode', {in:'b'}), sv('feMergeNode', {in:'SourceGraphic'}))));
   svg.append(defs);
   const g = sv('g', {class:'core', 'data-s':st});
-  g.append(sv('circle', {class:'cslow', cx:c, cy:c, r:336, fill:'none', stroke:'#3aa8ff', 'stroke-opacity':'.35', 'stroke-dasharray':'2 12', 'stroke-width':'2'}));
-  g.append(sv('circle', {class:'cslow', cx:c, cy:c, r:312, fill:'none', stroke:'#9b6bff', 'stroke-opacity':'.22', 'stroke-dasharray':'30 18', 'stroke-width':'1.4', style:'animation-direction:reverse'}));
+  g.append(sv('circle', {class:'cslow', cx:c, cy:c, r:340, fill:'none', stroke:'#3aa8ff', 'stroke-opacity':'.32', 'stroke-dasharray':'2 12', 'stroke-width':'2'}));
+  g.append(sv('circle', {class:'cslow', cx:c, cy:c, r:318, fill:'none', stroke:'#9b6bff', 'stroke-opacity':'.2', 'stroke-dasharray':'30 18', 'stroke-width':'1.4', style:'animation-direction:reverse'}));
   const nav = FACETS.map((f, i) => { const ang = (-90 + i * 72) * Math.PI / 180; return {x:c + 262 * Math.cos(ang), y:c + 262 * Math.sin(ang), ang}; });
   nav.forEach(n => g.append(sv('line', {x1:c + 176 * Math.cos(n.ang), y1:c + 176 * Math.sin(n.ang), x2:c + 198 * Math.cos(n.ang), y2:c + 198 * Math.sin(n.ang), stroke:col, 'stroke-opacity':'.8', 'stroke-width':'2.4', 'stroke-linecap':'round'})));
   g.append(sv('circle', {class:'cdash', cx:c, cy:c, r:194, fill:'none', stroke:col, 'stroke-opacity':'.45', 'stroke-dasharray':'6 10', 'stroke-width':'1.6'}));
@@ -943,6 +978,12 @@ function buildCore(a, cur){
   const a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * Math.max(frac, .001);
   if (cur) g.append(sv('path', {d:`M${c + 172 * Math.cos(a0)} ${c + 172 * Math.sin(a0)} A172 172 0 ${frac > .5 ? 1 : 0} 1 ${c + 172 * Math.cos(a1)} ${c + 172 * Math.sin(a1)}`, fill:'none', stroke:col, 'stroke-width':'9', 'stroke-linecap':'round', filter:'url(#cGlow)', class:'freshArc'}));
   else g.append(sv('circle', {cx:c, cy:c, r:172, fill:'none', stroke:col, 'stroke-opacity':'.4', 'stroke-width':'3', 'stroke-dasharray':'4 8'}));
+  if (cur) {      // a slow sweep and drifting motes mark a reporting core; an agent with no report stays still
+    g.append(sv('path', {class:'csweep', d:`M${c + 186 * Math.cos(-1.2)} ${c + 186 * Math.sin(-1.2)} A186 186 0 0 1 ${c + 186 * Math.cos(-.2)} ${c + 186 * Math.sin(-.2)}`, fill:'none', stroke:'#fff', 'stroke-opacity':'.55', 'stroke-width':'2.4', 'stroke-linecap':'round', filter:'url(#cGlow)'}));
+    const motes = sv('g', {class:'cmotes'});
+    for (let i = 0; i < 14; i++) { const an = i / 14 * Math.PI * 2, rr = 206 + (i % 3) * 5; motes.append(sv('circle', {cx:c + rr * Math.cos(an), cy:c + rr * Math.sin(an), r:i % 4 === 0 ? 2.4 : 1.5, fill:col, 'fill-opacity':'.7'})); }
+    g.append(motes);
+  }
   g.append(sv('circle', {class:'cring', cx:c, cy:c, r:152, fill:'none', stroke:col, 'stroke-width':'3'}));
   g.append(sv('circle', {class:'cglow', cx:c, cy:c, r:154, fill:'none', stroke:col, 'stroke-width':'3.4', filter:'url(#cGlow)'}));
   g.append(sv('circle', {cx:c, cy:c, r:150, fill:'url(#cDisc)', stroke:col, 'stroke-opacity':'.9', 'stroke-width':'2'}));
@@ -950,10 +991,60 @@ function buildCore(a, cur){
   svg.append(g);
   return {nav, col, st};
 }
+/* Floating, genuine recent activity: one entry per reported event, newest first. No boxes. */
+function buildTimeline(a, evs){
+  const box = $('detailTimeline'); box.replaceChildren(el('h3', {cls:'ph', text:'Recent activity'}));
+  if (!evs.length) { box.append(el('p', {cls:'empty', text:'No reports received. Nothing to show.'})); return; }
+  const ul = el('ul', {cls:'tl'});
+  evs.slice(0, 7).forEach((e, i) => {
+    const gsv = sv('svg', {viewBox:'-10 -10 20 20', 'aria-hidden':'true'}); gsv.append(glyph(e.status, 7, stateColor(e.status, streamOf(a.stream).color)));
+    const mode = e.dry_run === null ? null : e.dry_run ? 'dry run' : 'live';
+    const li = el('li', {cls: i > 4 ? 'dim' : '', style:'animation-delay:' + (i * 60) + 'ms'}, gsv,
+      el('b', {text:STATUS_TEXT[e.status]}), el('span', {text:A.formatNicosia(e.ms, 'datetime') + (mode ? ', ' + mode : '') + (e.flags.some(f => f.code === 'DELIVERED_LATE') ? ', delivered late' : '')}));
+    ul.append(li);
+  });
+  box.append(ul);
+}
+/* Circular status indicators. Every segment and arc is a genuine report or the genuine age of one. */
+function ring(r, w, col, o){ return sv('circle', Object.assign({cx:0, cy:0, r, fill:'none', stroke:col, 'stroke-width':w}, o || {})); }
+function arc(r, from, to, w, col, o){
+  const p = a => (r * Math.cos(a)).toFixed(2) + ' ' + (r * Math.sin(a)).toFixed(2);
+  return sv('path', Object.assign({d:`M${p(from)} A${r} ${r} 0 ${(to - from) > Math.PI ? 1 : 0} 1 ${p(to)}`, fill:'none', stroke:col, 'stroke-width':w, 'stroke-linecap':'round'}, o || {}));
+}
+function gauge(label, note, draw){
+  const svg = sv('svg', {viewBox:'-50 -50 100 100', role:'img', 'aria-label':label + ': ' + note}); draw(svg);
+  return el('div', {cls:'gauge'}, svg, el('b', {text:label}), el('small', {text:note}));
+}
+function buildGauges(a, cur, evs, col){
+  const box = $('detailGauges'); box.replaceChildren();
+  const now = nowFn(), age = cur ? now - cur.ms : null, frac = cur ? Math.max(0, 1 - Math.min(age, A.STALE_AFTER_MS) / A.STALE_AFTER_MS) : 0;
+  const txt = (t, y, size) => sv('text', {x:0, y, 'text-anchor':'middle', fill:'#fff', 'font-family':'Rajdhani,Arial,sans-serif', 'font-weight':'700', 'font-size':size, text:t});
+  box.append(gauge('Freshness', cur ? 'Reported ' + FXH.age(age) : 'No report received', svg => {
+    svg.append(ring(38, 7, '#12324f'));
+    if (cur) svg.append(arc(38, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(frac, .01), 7, col, {filter:'url(#glowS)'})); else svg.append(ring(38, 3, col, {'stroke-opacity':'.4', 'stroke-dasharray':'3 6'}));
+    svg.append(txt(cur ? FXH.ageShort(age) : 'No report', cur ? 6 : 4, cur ? 20 : 11));
+  }));
+  const in24 = evs.filter(e => now - e.ms <= A.STALE_AFTER_MS).length, segs = Math.min(in24, 12);
+  box.append(gauge('Reports 24 h', in24 ? in24 + ' report' + (in24 === 1 ? '' : 's') + ', one segment each' + (in24 > 12 ? ' (first 12 drawn)' : '') : 'None in the last 24 h', svg => {
+    svg.append(ring(38, 7, '#12324f'));
+    if (!segs) svg.append(ring(38, 3, col, {'stroke-opacity':'.4', 'stroke-dasharray':'3 6'}));
+    for (let i = 0; i < segs; i++) { const sp = Math.PI * 2 / segs, gap = segs > 1 ? .16 : 0; svg.append(arc(38, -Math.PI / 2 + i * sp + gap / 2, -Math.PI / 2 + (i + 1) * sp - gap / 2, 7, col, {filter:'url(#glowS)'})); }
+    svg.append(txt(String(in24), 7, 22));
+  }));
+  const done = evs.filter(e => e.status !== 'working'), dry = done.filter(e => e.dry_run === true).length, live = done.filter(e => e.dry_run === false).length, ns = done.length - dry - live;
+  box.append(gauge('Mode', done.length ? dry + ' dry run, ' + live + ' live, ' + ns + ' not stated' : 'No completed reports', svg => {
+    svg.append(ring(38, 7, '#12324f'));
+    if (!done.length) svg.append(ring(38, 3, col, {'stroke-opacity':'.4', 'stroke-dasharray':'3 6'}));
+    let at = -Math.PI / 2; const parts = [[dry, '#62cfff', null], [live, '#ffd166', null], [ns, '#8aa8c0', '3 4']];
+    for (const [n, cc, da] of parts) if (n) { const sp = Math.PI * 2 * n / done.length; svg.append(arc(38, at + .05, at + sp - .05, 7, cc, da ? {'stroke-dasharray':da} : {})); at += sp; }
+    const last = done[0]; svg.append(txt(last ? (last.dry_run === null ? 'n/s' : last.dry_run ? 'Dry' : 'Live') : '-', 7, 19));
+  }));
+}
 function drawAgent(){
   if (!selKey) return;
   const a = agentByKey(selKey), now = nowFn(), cur = A.currentEvent(store, a, now), evs = A.eventsFor(store, a);
-  const { nav, col, st } = buildCore(a, cur);
+  const { nav, col, st } = buildCore(a, cur, evs);
+  buildTimeline(a, evs); buildGauges(a, cur, evs, col);
   $('detailName').textContent = a.name;
   $('detailPath').textContent = 'Home ' + a.home + ', operates in ' + a.stream + ' ' + streamOf(a.stream).name;
   $('detailCode').textContent = a.code ? a.code : 'No verified code: ' + a.interim_id;
@@ -963,16 +1054,21 @@ function drawAgent(){
   const chipline = $('detailChips'); chipline.replaceChildren(verChip(a));
   $('crumbStream').textContent = a.stream + ' ' + streamOf(a.stream).name;
   $('crumbAgent').textContent = a.name;
-  const tabs = $('detailTabs'); tabs.replaceChildren();
-  FACETS.forEach(([k, n], i) => {
-    const b = el('button', {type:'button', 'aria-selected':String(selTab === k), 'data-facet':k, style:`left:${(nav[i].x / 7).toFixed(2)}%;top:${(nav[i].y / 7).toFixed(2)}%`});
-    const ic = sv('svg', {viewBox:'-20 -20 40 40', 'aria-hidden':'true', fill:'none', stroke:'currentColor', 'stroke-width':'2.4', 'stroke-linecap':'round', 'stroke-linejoin':'round'}); ic.append(sv('path', {d:FACET_ICON[k]}));
-    b.append(ic, document.createTextNode(n));
-    b.addEventListener('click', () => { selTab = k; drawAgent(); });
-    tabs.append(b);
-  });
+  const tabs = $('detailTabs');
+  if (tabs.dataset.key !== selKey) {       // built once per agent so that switching facets is a smooth state change, not a rebuild
+    tabs.replaceChildren(); tabs.dataset.key = selKey;
+    FACETS.forEach(([k, n], i) => {
+      const b = el('button', {type:'button', 'aria-selected':'false', 'data-facet':k, style:`left:${(nav[i].x / 7).toFixed(2)}%;top:${(nav[i].y / 7).toFixed(2)}%`});
+      const ic = sv('svg', {viewBox:'-20 -20 40 40', 'aria-hidden':'true', fill:'none', stroke:'currentColor', 'stroke-width':'2.4', 'stroke-linecap':'round', 'stroke-linejoin':'round'}); ic.append(sv('path', {d:FACET_ICON[k]}));
+      b.append(ic, document.createTextNode(n));
+      b.addEventListener('click', () => { selTab = k; drawAgent(); });
+      tabs.append(b);
+    });
+  }
+  [...tabs.children].forEach(b => b.setAttribute('aria-selected', String(b.dataset.facet === selTab)));
   const facet = FACETS.find(f => f[0] === selTab) || FACETS[0];
   $('detailPaneTitle').textContent = facet[1];
+  const pane = $('detailPane'); if (pane.dataset.facet !== selTab + '|' + selKey) { pane.dataset.facet = selTab + '|' + selKey; pane.style.animation = 'none'; void pane.offsetWidth; pane.style.animation = ''; }
   const c = $('detailContent'); c.replaceChildren();
   const hasCost = cur && !cur.public && (cur.cost_eur !== null || cur.cost_usd_estimated);
   if (selTab === 'activity') {
@@ -1041,7 +1137,7 @@ $('panelClose').addEventListener('click', closeStream);
 $('agentModal').addEventListener('click', e => { if (e.target === $('agentModal')) closeAgent(); });
 $('detailClose').addEventListener('click', closeAgent);
 $('crumbCompany').addEventListener('click', () => { closeAgent(); closeStream(); });
-$('crumbStream').addEventListener('click', () => { const a = selKey && agentByKey(selKey); closeAgent(); if (a) openStream(a.stream); });
+$('crumbStream').addEventListener('click', () => { const a = selKey && agentByKey(selKey); agentZoom = false; closeAgent(); if (a) openStream(a.stream); });
 $('sysBtn').addEventListener('click', () => { const p = $('sysPanel'); const open = !p.classList.contains('open'); p.classList.toggle('open', open); $('sysBtn').setAttribute('aria-expanded', String(open)); });
 
 document.addEventListener('keydown', e => {
@@ -1171,7 +1267,7 @@ function renderCost(){
 $('costBtn').addEventListener('click', () => { const p = $('costPanel'), open = !p.classList.contains('open'); p.classList.toggle('open', open); $('costBtn').setAttribute('aria-expanded', String(open)); });
 
 /* ---------- Camera, Earth and backdrop (decorative layer, see acc_visual.js) ---------- */
-const FXH = { age: ms => window.ACC_FX ? window.ACC_FX.ageText(ms) : '' };
+const FXH = { age: ms => window.ACC_FX ? window.ACC_FX.ageText(ms) : '', ageShort: ms => { const m = Math.max(0, Math.round(ms / 60000)); return m < 1 ? '<1 min' : m < 60 ? m + ' min' : m < 1440 ? Math.floor(m / 60) + ' h' : Math.floor(m / 1440) + ' d'; } };
 const clampN = (v, a, b) => Math.min(b, Math.max(a, v));
 const isMobile = () => !!(window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
 let vb = [0, 0, 1200, 800], baseBox = vb.slice(), camId = null, camTween = null, fx = null;
@@ -1220,12 +1316,25 @@ function flyTo(target){
 }
 function zoomTo(id){ if (camId === id) return; camId = id; flyTo(boxFor(id)); }
 function zoomHome(){ if (!camId) return; camId = null; flyTo(baseBox.slice()); }
+const par = {x:0, y:0, tx:0, ty:0};
+function initParallax(){
+  if (!window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia('(pointer: coarse)').matches) return;
+  window.addEventListener('pointermove', e => { par.tx = (e.clientX / innerWidth - .5) * 2; par.ty = (e.clientY / innerHeight - .5) * 2; }, {passive:true});
+}
+function stepParallax(){
+  par.x += (par.tx - par.x) * .06; par.y += (par.ty - par.y) * .06;
+  if (Math.abs(par.tx - par.x) < .002 && Math.abs(par.ty - par.y) < .002 && !par.moving) return;
+  par.moving = Math.abs(par.tx - par.x) > .002 || Math.abs(par.ty - par.y) > .002;
+  $('earth').style.transform = `translate3d(${(-par.x * 14).toFixed(1)}px, ${(-par.y * 9).toFixed(1)}px, 0)`;
+  $('orbit').style.transform = `translate3d(${(par.x * 6).toFixed(1)}px, ${(par.y * 4).toFixed(1)}px, 0)`;
+  if (fx) fx.backdrop.parallax(par.x * 26, par.y * 16);
+}
 function initFx(){
   if (!window.ACC_FX || /jsdom/i.test(navigator.userAgent) || !document.createElement('canvas').getContext) return;
   try {
     const earth = window.ACC_FX.createEarth($('earth')), backdrop = window.ACC_FX.createBackdrop($('fxBg'));
     fx = {earth, backdrop, q:1, ms:0, last:0, gap:50, lowCount:0};
-    backdrop.resize(); sizeEarth(); layoutFx();
+    backdrop.resize(); sizeEarth(); layoutFx(); initParallax();
     fx.loop = window.ACC_FX.loop([(t, n) => {
       if (n % 3 === 0) backdrop.draw(t);
       if (t - fx.last >= fx.gap) {
@@ -1233,7 +1342,7 @@ function initFx(){
         if (fx.ms > 24 && fx.q > .5 && ++fx.lowCount > 12) { fx.q *= .82; fx.lowCount = 0; sizeEarth(); }       // adapt quality to the machine
         else if (fx.ms > 45) fx.gap = 100;
       }
-      stepParticles(t);
+      stepParticles(t); stepParallax();
     }], 30);
     let rt = 0;
     const relayout = () => { clearTimeout(rt); rt = setTimeout(() => { backdrop.resize(); setBase(); sizeEarth(); layoutFx(); fx.loop.once(); }, 90); };

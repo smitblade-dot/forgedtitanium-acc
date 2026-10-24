@@ -207,3 +207,117 @@ test('the public view never shows task text, run references, keys or costs in th
   assert.doesNotMatch(text, /sk-ant|k_[0-9a-f]{12}|secret|signing|bearer|run ref|€\s?\d/i);
   assert.match(text, /Not published/);
 });
+
+/* ---------------- ACC-R018 ---------------- */
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const pathEnds = d => { const n = d.match(/-?\d+(\.\d+)?/g).map(Number); return [{ x: n[0], y: n[1] }, { x: n[2], y: n[3] }]; };
+
+test('R018 topology: 00 is the hub and each of the six streams connects directly to it; no stream is chained to another', async () => {
+  const d = (await load()).window.document;
+  const links = [...d.querySelectorAll('#links .link')];
+  assert.equal(links.length, 6);
+  const core = { x: 600, y: 400 };
+  for (const l of links) {
+    const id = l.dataset.stream, [from, to] = pathEnds(d.querySelector('#link' + id).getAttribute('d'));
+    const ring = d.querySelector('#node' + id + ' .ring'), node = { x: +ring.getAttribute('cx'), y: +ring.getAttribute('cy') };
+    assert.ok(dist(from, core) < 110 && dist(from, core) > 95, 'link ' + id + ' starts at the hub: ' + dist(from, core));
+    assert.ok(dist(to, node) < 110 && dist(to, node) > 100, 'link ' + id + ' ends at its own node: ' + dist(to, node));
+    assert.ok(dist(to, core) > 150, 'and runs outward from 00');
+  }
+  assert.equal(d.querySelectorAll('#orbit [id^="flow"], #orbit [marker-end], #orbit marker, #orbit #orbitRing').length, 0, 'no sequential arcs, arrows or ring through the streams');
+  const positions = ['01', '02', '03', '04', '05', '06'].map(id => { const r = d.querySelector('#node' + id + ' .ring'); return [Math.round(+r.getAttribute('cx')), Math.round(+r.getAttribute('cy'))]; });
+  assert.deepEqual(positions[0].map(Math.round), [600, 132], 'the approved positions are unchanged: 01 at 12 o\'clock');
+});
+
+test('R018 pulses: identical on all six links, decorative, and never driven by a report', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  const html = fs.readFileSync(INDEX, 'utf8');
+  assert.match(html, /pulses travel outward from 00 on every link\. They are decorative, identical for all six streams and are not driven by any report/);
+  assert.doesNotMatch(html, /spokeLive/);
+  assert.match(d.querySelector('#orbitLegend').textContent, /Pulses on the links are decorative and do not represent agent communication/);
+});
+
+const COST_DOC = (over) => {
+  const sc = (api, n, m) => ({ api: api === null ? { state: 'no_cost_data', amount_eur: null, costed_reports: 0, completion_reports: m || 0 } : { state: 'recorded', amount_eur: api, costed_reports: n, completion_reports: m },
+    subscription: { state: 'no_cost_data', amount_eur: null, costed_reports: 0 }, original_currency: { state: 'no_cost_data', currency: null, amount: null, reports: 0, converted: false } });
+  const d = { schema: 'acc-public-cost/1', generated_at_utc: '2026-10-23T12:00:00Z', currency: 'EUR', time_zone: 'Europe/Nicosia',
+    evidence: { kind: 'agent_execution_records', provider_confirmed: false, note: 'Agent execution records, not provider invoices', subscription_note: 'Subscription usage is reported separately and is never added to API cost' },
+    today: Object.assign({ date: '2026-10-23' }, sc(0.42, 3, 4)), month: Object.assign({ month: '2026-10' }, sc(1.5, 9, 12)),
+    by_agent: [{ agent_id: MASTER, name: 'TI Operations Director (Master Agent)', today: sc(0.42, 3, 4), month: sc(1.5, 9, 12) }, { agent_id: BUILDER, name: 'Country Intelligence Builder', today: sc(null, 0, 2), month: sc(null, 0, 3) }],
+    by_model_tier: ['code', 'haiku', 'sonnet', 'opus'].map(t => ({ tier: t, today: sc(t === 'haiku' ? 0.42 : null, t === 'haiku' ? 3 : 0, 4), month: sc(t === 'haiku' ? 1.5 : null, t === 'haiku' ? 9 : 0, 12) })) };
+  return over ? over(d) || d : d;
+};
+
+test('R018 cost: with no published document every field reads No cost data and nothing is invented', async () => {
+  const d = (await load()).window.document;
+  assert.equal(d.querySelector('#costVal').textContent, 'No cost data');
+  assert.equal(d.querySelector('#costSub').textContent, 'Not published');
+  const rows = [...d.querySelectorAll('#costPanel .costrow .v')];
+  assert.equal(rows.length, 6);
+  assert.ok(rows.every(r => r.textContent === 'No cost data'));
+  assert.doesNotMatch(d.querySelector('#costPanel').textContent, /€\s?\d|0\.00/, 'no invented zero');
+  assert.match(d.querySelector('#costPanel').textContent, /awaiting the owner/);
+  assert.match(fs.readFileSync(INDEX, 'utf8').split('fetch(statusUrl()').length > 1 ? 'x' : '', /x/);
+  assert.equal((fs.readFileSync(INDEX, 'utf8').match(/\bfetch\s*\(/g) || []).length, 1, 'still exactly one request site: the status feed');
+});
+
+test('R018 cost: a valid projection shows EUR by period, agent and model, keeps subscription and original currency separate, and marks proposed fields', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  const doc = COST_DOC(x => { x.today.subscription = { state: 'recorded', amount_eur: 12, costed_reports: 1 }; x.today.original_currency = { state: 'recorded', currency: 'USD', amount: 0.0223, reports: 2, converted: false }; });
+  assert.equal(w.ACC_APP.applyPublicCost(doc, { proposed: true }), true);
+  assert.equal(d.querySelector('#costVal').textContent, '€0.42');
+  assert.match(d.querySelector('#costSub').textContent, /today · 3 of 4 reports/);
+  const text = d.querySelector('#costPanel').textContent;
+  assert.match(text, /PROPOSED FIELDS: NOT PUBLISHED/);
+  assert.match(text, /Today, 2026-10-23[\s\S]*API expenditure€0\.42/); assert.match(text, /Month to date, 2026-10[\s\S]*€1\.50/);
+  assert.match(text, /TI Operations Director \(Master Agent\)€0\.42/); assert.match(text, /Country Intelligence BuilderNo cost data/);
+  assert.match(text, /HaikuNo cost data|Haiku€0\.42/); assert.match(text, /Opus\s*No cost data|OpusNo cost data/);
+  assert.match(text, /USD 0\.0223/); assert.match(text, /Subscription€12\.00/); assert.match(text, /Never added to API cost/);
+  assert.match(text, /not provider invoices/i);
+  assert.doesNotMatch(text, /allowance|approval|key|run ref|secret/i);
+});
+
+test('R018 cost: a recorded zero is shown as a zero only when reports state it; no cost data stays No cost data', async () => {
+  const w = (await load()).window, d = w.document;
+  w.ACC_APP.applyPublicCost(COST_DOC(x => { x.today.api = { state: 'recorded', amount_eur: 0, costed_reports: 13, completion_reports: 13 }; }));
+  assert.equal(d.querySelector('#costVal').textContent, '€0.00');
+  assert.match(d.querySelector('#costSub').textContent, /13 of 13 reports/);
+  w.ACC_APP.applyPublicCost(COST_DOC(x => { x.today.api = { state: 'no_cost_data', amount_eur: null, costed_reports: 0, completion_reports: 5 }; }));
+  assert.equal(d.querySelector('#costVal').textContent, 'No cost data');
+  assert.doesNotMatch(d.querySelector('#costVal').textContent, /€/);
+});
+
+test('R018 cost: anything outside the allowlist is refused and the page falls back to No cost data', async () => {
+  const w = (await load()).window, d = w.document;
+  const bad = [x => { x.allowance_eur = 5; }, x => { x.today.api.amount_eur = '0.42'; }, x => { x.today.api.amount_eur = -1; }, x => { x.today.api.state = 'no_cost_data'; }, x => { x.by_agent[0].task = 'x'; },
+    x => { x.evidence.provider_confirmed = true; }, x => { x.currency = 'USD'; }, x => { x.today.original_currency.converted = true; }, x => { x.by_model_tier.pop(); },
+    x => { x.by_agent[0].name = '<img src=x onerror=alert(1)>'; }, x => { x.today.date = 'today'; }, x => { x.approval_reference = 'ref'; }];
+  for (const fn of bad) {
+    const doc = COST_DOC(fn);
+    assert.equal(w.ACC_APP.applyPublicCost(doc), false);
+    assert.equal(d.querySelector('#costVal').textContent, 'No cost data');
+    assert.equal(d.querySelectorAll('#costPanel img').length, 0);
+  }
+});
+
+test('R018 agent console: floating timeline of genuine events, three circular indicators, a built-once radial menu, and a still core without a report', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  const hist = [{ at_utc: ago(5), state: 'idle', mode: 'dry_run', delivered_late: false }, { at_utc: ago(6), state: 'active', mode: 'dry_run', delivered_late: false }, { at_utc: ago(300), state: 'failed', mode: null, delivered_late: true }];
+  w.ACC_APP.applyPublicStatus(doc([Object.assign(entry(MASTER, 'TI Operations Director (Master Agent)', 'idle', 5), { history: hist })]));
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'TI Operations Director (Master Agent)'));
+  const tl = [...d.querySelectorAll('#detailTimeline .tl li')];
+  assert.equal(tl.length, 3, 'one entry per genuine event');
+  assert.match(tl[0].textContent, /Idle/); assert.match(tl[0].textContent, /dry run/); assert.match(tl[2].textContent, /Failed/);
+  const gauges = [...d.querySelectorAll('#detailGauges .gauge')];
+  assert.deepEqual(gauges.map(g => g.querySelector('b').textContent), ['Freshness', 'Reports 24 h', 'Mode']);
+  assert.match(gauges[0].textContent, /Reported 5 min ago/); assert.match(gauges[1].textContent, /3 reports/); assert.match(gauges[2].textContent, /2 dry run, 0 live, 0 not stated/);
+  assert.ok(d.querySelector('#coreSvg .csweep') && d.querySelector('#coreSvg .cmotes'), 'a reporting core is animated');
+  const btn = d.querySelector('#detailTabs button'); click(w, d.querySelectorAll('#detailTabs button')[2]);
+  assert.equal(d.querySelector('#detailTabs button'), btn, 'switching facet does not rebuild the radial menu');
+  assert.equal(d.querySelectorAll('#detailTabs button[aria-selected=true]').length, 1);
+  click(w, d.querySelector('#detailClose'));
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'Country Intelligence Builder'));
+  assert.equal(d.querySelector('#coreSvg .csweep'), null, 'an agent with no report has a still core');
+  assert.match(d.querySelector('#detailTimeline').textContent, /No reports received/);
+  assert.match(d.querySelector('#detailGauges').textContent, /No report received/);
+});

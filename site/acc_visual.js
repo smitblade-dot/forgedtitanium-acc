@@ -12,7 +12,7 @@ const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
 /* ---------- land field: the 2-degree mask upsampled to 1 degree and softened so coastlines are smooth ---------- */
-let FIELD = null, CITY = null, TEX = null;
+let FIELD = null, CITY = null, TEX = null, CLOUD = null;
 function buildFields(){
   const bin = atob(LAND_B64), g = new Float32Array(LW * LH);
   for (let i = 0; i < g.length; i++) g[i] = (bin.charCodeAt(i >> 3) >> (i & 7)) & 1;
@@ -41,7 +41,19 @@ function buildFields(){
     const i = y * FW + x;
     if (f[i] > .62 && lat[i] > .9 && tex[i] > .46) city[i] = 1 + ((lat[i] * 977) | 0) % 3;
   }
-  FIELD = f; CITY = city; TEX = tex;
+  // soft cloud cover: random cells blurred into large drifting masses (decorative texture, not weather data)
+  const cl = new Float32Array(FW * FH), c2 = new Float32Array(FW * FH);
+  for (let i = 0; i < cl.length; i++) cl[i] = rnd();
+  for (let pass = 0; pass < 4; pass++) {
+    for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) {
+      let s = 0; for (let dy = -2; dy <= 2; dy++) for (let dx = -3; dx <= 3; dx++) s += cl[clamp(y + dy, 0, FH - 1) * FW + (x + dx + FW) % FW];
+      c2[y * FW + x] = s / 35;
+    }
+    cl.set(c2);
+  }
+  let lo = 1, hi = 0; for (const v of cl) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  for (let i = 0; i < cl.length; i++) cl[i] = (cl[i] - lo) / (hi - lo);
+  FIELD = f; CITY = city; TEX = tex; CLOUD = cl;
 }
 
 function createEarth(canvas){
@@ -53,7 +65,7 @@ function createEarth(canvas){
   function size(cssSide){
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     N = clamp(Math.round(cssSide * dpr), 240, 540); canvas.width = N; canvas.height = N;
-    Rpx = N / 2 / 1.22; S = Math.ceil(Rpx * 2) + 2; off.width = S; off.height = S;
+    Rpx = N / 2 / 1.34; S = Math.ceil(Rpx * 2) + 2; off.width = S; off.height = S;
     img = octx.createImageData(S, S);
     const n = S * S, fx0 = new Float32Array(n), fy = new Float32Array(n), lam = new Float32Array(n), rim = new Float32Array(n), spec = new Float32Array(n), alpha = new Uint8ClampedArray(n);
     const L = [-.46, .5, .73], ll = Math.hypot(...L); L[0] /= ll; L[1] /= ll; L[2] /= ll;
@@ -83,12 +95,15 @@ function createEarth(canvas){
       const x0 = fx | 0, x1 = x0 + 1 === FW ? 0 : x0 + 1, tx = fx - x0, yy = fy[p], y0 = yy | 0, ty = yy - y0, r0 = y0 * FW, r1 = r0 + FW;
       const v = (FIELD[r0 + x0] * (1 - tx) + FIELD[r0 + x1] * tx) * (1 - ty) + (FIELD[r1 + x0] * (1 - tx) + FIELD[r1 + x1] * tx) * ty;
       const land = smooth(.4, .6, v), l = lam[p], sh = .4 + .6 * Math.pow(l, .8), rm = rim[p];
+      let cfx = fx0[p] + shift * 1.35; cfx = cfx - Math.floor(cfx / FW) * FW;
+      const cloud = smooth(.5, .72, CLOUD[(yy | 0) * FW + (cfx | 0)]);
       const tex = .9 + .1 * Math.sin(fx * .33) * Math.sin(yy * .41 + 1.3) + .18 * (TEX[r0 + x0] - .5);
       let R = 12 + 40 * Math.pow(l, .8), G = 54 + 112 * Math.pow(l, .8), B = 120 + 130 * Math.pow(l, .8);          // ocean
       const sp = spec[p] * (1 - land) * .4; R += 150 * sp; G += 190 * sp; B += 235 * sp;
       const ice = smooth(.74, .9, Math.abs(yy - 90) / 90), lR = (40 + 90 * l) * tex + 150 * ice * l, lG = (150 + 90 * l) * tex + 110 * ice * l, lB = (150 + 70 * l) * tex + 90 * ice * l;                     // lit land (holographic teal)
       R = R + (lR * sh - R) * land; G = G + (lG * sh - G) * land; B = B + (lB * sh - B) * land;
       if (land > .5 && l < .4) { const c = CITY[r0 + x0]; if (c) { const k = (1 - l / .4) * (.6 + .15 * c) * Math.max(0, 1 - 2.1 * Math.hypot(tx - .5, ty - .5)); R += 255 * k; G += 175 * k; B += 80 * k; } }
+      if (cloud > 0) { const k = cloud * (.12 + .78 * l) * .8; R += (214 - R) * k; G += (232 - G) * k; B += (255 - B) * k; }
       const dist = Math.abs(fx - band), sc = Math.max(0, 1 - Math.min(dist, FW - dist) / 5) * .22 * (.4 + land);
       R += 70 * rm + 70 * sc; G += 190 * rm + 160 * sc; B += 255 * rm + 220 * sc;
       d[q] = R; d[q + 1] = G; d[q + 2] = B; d[q + 3] = a;
@@ -96,9 +111,9 @@ function createEarth(canvas){
     octx.putImageData(img, 0, 0);
     ctx.clearRect(0, 0, N, N);
     const c = N / 2;
-    let g = ctx.createRadialGradient(c, c, Rpx * .9, c, c, Rpx * 1.22);
-    g.addColorStop(0, 'rgba(70,190,255,.55)'); g.addColorStop(.3, 'rgba(40,140,255,.24)'); g.addColorStop(1, 'rgba(20,80,200,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, Rpx * 1.22, 0, 7); ctx.fill();
+    let g = ctx.createRadialGradient(c, c, Rpx * .92, c, c, Rpx * 1.34);
+    g.addColorStop(0, 'rgba(90,205,255,.75)'); g.addColorStop(.18, 'rgba(60,160,255,.42)'); g.addColorStop(.5, 'rgba(40,120,255,.16)'); g.addColorStop(1, 'rgba(20,80,200,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, Rpx * 1.34, 0, 7); ctx.fill();
     ctx.drawImage(off, c - S / 2, c - S / 2);
     // holographic graticule, kept consistent with the texture rotation
     ctx.lineWidth = Math.max(1, dpr * .7); ctx.strokeStyle = 'rgba(150,225,255,.16)';
@@ -110,7 +125,7 @@ function createEarth(canvas){
     g.addColorStop(0, 'rgba(120,220,255,0)'); g.addColorStop(.72, 'rgba(150,235,255,.55)'); g.addColorStop(1, 'rgba(120,220,255,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, Rpx * 1.03, 0, 7); ctx.fill();
   }
-  return { size, draw, get ratio(){ return 1.22; } };
+  return { size, draw, get ratio(){ return 1.34; } };
 }
 
 /* ---------- Backdrop: depth, nebula, stars, light sweeps ---------- */
@@ -124,20 +139,22 @@ function createBackdrop(canvas){
     w = window.innerWidth; h = window.innerHeight;
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
   }
+  let px = 0, py = 0;
   function shift(dx, dy){ ox = dx; oy = dy; }
+  function parallax(dx, dy){ px = dx; py = dy; }
   function draw(t){
     if (!w) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = '#01050e'; ctx.fillRect(0, 0, w, h);
     const neb = (x, y, r, c1, c2) => { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); };
-    neb(w * .5 + ox * .2, h * .46 + oy * .2, Math.max(w, h) * .66, 'rgba(14,70,160,.62)', 'rgba(2,8,19,0)');
+    neb(w * .5 + ox * .2 + px * .5, h * .46 + oy * .2 + py * .5, Math.max(w, h) * .66, 'rgba(14,70,160,.62)', 'rgba(2,8,19,0)');
     neb(w * .1 - ox * .1, h * .22, Math.max(w, h) * .46, 'rgba(110,40,170,.3)', 'rgba(2,8,19,0)');
     neb(w * .92 - ox * .1, h * .74, Math.max(w, h) * .44, 'rgba(0,130,180,.26)', 'rgba(2,8,19,0)');
     neb(w * .84, h * .12, Math.max(w, h) * .3, 'rgba(255,150,40,.1)', 'rgba(2,8,19,0)');
     for (const s of stars) {
       const tw = .65 + .35 * Math.sin(t / 900 * s.d + s.p);
       ctx.globalAlpha = s.a * tw; ctx.fillStyle = s.warm ? '#ffd9a0' : '#a8dcff';
-      const x = ((s.x * w + ox * s.d * .5) % w + w) % w, y = ((s.y * h + oy * s.d * .5) % h + h) % h;
+      const x = ((s.x * w + ox * s.d * .5 + px * s.d) % w + w) % w, y = ((s.y * h + oy * s.d * .5 + py * s.d) % h + h) % h;
       ctx.beginPath(); ctx.arc(x, y, s.r, 0, 7); ctx.fill();
     }
     ctx.globalAlpha = 1; ctx.lineCap = 'round';
@@ -154,7 +171,7 @@ function createBackdrop(canvas){
     v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,3,10,.72)');
     ctx.fillStyle = v; ctx.fillRect(0, 0, w, h);
   }
-  return { resize, draw, shift };
+  return { resize, draw, shift, parallax };
 }
 
 /* ---------- loop, tween, helpers ---------- */
