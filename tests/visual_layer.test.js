@@ -65,8 +65,7 @@ test('no agent-to-agent communication is drawn, and the page says so', async () 
   const dom = await load(), w = dom.window, d = w.document;
   w.ACC_APP.applyPublicStatus(doc([entry(CONTROLLER, 'Production Controller TI', 'active', 3), entry(BUILDER, 'Country Intelligence Builder', 'active', 4), entry(MASTER, 'TI Operations Director (Master Agent)', 'active', 5)]));
   assert.match(d.querySelector('#orbitLegend').textContent, /No agent-to-agent message is evidenced, so none is drawn/);
-  // the only connections are the register's stream flows and the spokes to the core; none joins two agent orbs
-  assert.equal(d.querySelectorAll('#satLayer line').length, d.querySelectorAll('#satLayer .sat').length, 'each orb has only its tether to its own stream');
+  assert.equal(d.querySelectorAll('#satLayer line, #satLayer path[marker-end]').length, 0, 'no link joins two agent orbs');
 });
 
 test('stream status rings count the real registered agents of each stream', async () => {
@@ -104,9 +103,107 @@ test('the status feed still decides everything: an empty feed leaves all agents 
   assert.ok([...d.querySelectorAll('#agentGrid .agent')].every(b => /No report received/.test(b.textContent)));
 });
 
-test('layout hooks for the camera exist: base box, aspect ratio and a canvas for the Earth and the backdrop', async () => {
+test('layout hooks for the camera exist: a stage, a canvas for the Earth and the backdrop, and a computed viewBox', async () => {
   const d = (await load()).window.document;
-  assert.ok(d.querySelector('canvas#earth') && d.querySelector('canvas#fxBg'));
-  assert.equal(d.querySelector('#orbit').getAttribute('viewBox'), '0.0 20.0 1200.0 760.0');
-  assert.equal(d.querySelector('#orbit').style.aspectRatio.replace(/\s/g, ''), '1200/760');
+  assert.ok(d.querySelector('#stage') && d.querySelector('canvas#earth') && d.querySelector('canvas#fxBg'));
+  assert.match(d.querySelector('#orbit').getAttribute('viewBox'), /^-?[\d.]+ -?[\d.]+ [\d.]+ [\d.]+$/);
+});
+
+const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+const shapesOf = (d, key) => [...d.querySelectorAll('#agentGrid .agent[data-agent="' + key + '"] .glyph')].map(g => g.dataset.shape);
+
+test('every reported state has its own shape and label, never colour alone', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  w.ACC_APP.applyPublicStatus(doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'active', 3), entry(BUILDER, 'Country Intelligence Builder', 'awaiting_approval', 4), entry(CONTROLLER, 'Production Controller TI', 'failed', 5)]));
+  assert.deepEqual([shapesOf(d, MASTER)[0], shapesOf(d, BUILDER)[0], shapesOf(d, CONTROLLER)[0]], ['working', 'awaiting_approval', 'failed']);
+  const w2 = (await load()).window; w2.ACC_APP.applyPublicStatus(doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'disconnected', 4), entry(BUILDER, 'Country Intelligence Builder', 'idle', 4)]));
+  const d2 = w2.document;
+  assert.deepEqual([shapesOf(d2, MASTER)[0], shapesOf(d2, BUILDER)[0]], ['offline', 'idle']);
+  assert.equal(shapesOf(d2, CONTROLLER)[0], 'none', 'an agent with no report is drawn as unknown');
+  // provisional agents are a different silhouette (hexagon) from verified agents without a report
+  const prov = d2.querySelector('#agentGrid .agent[data-agent="sqe"] .glyph polygon'), ver = d2.querySelector('#agentGrid .agent[data-agent="' + CONTROLLER + '"] .glyph polygon');
+  assert.ok(prov && !ver, 'provisional = hexagon, verified unknown = ring');
+  // the console names the state in words as well
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'Production Controller TI'));
+  assert.match(d.querySelector('#detailState').textContent, /Failed/);
+  assert.equal(d.querySelector('#coreSvg .core').dataset.s, 'failed');
+});
+
+test('Level 2 labels and the stream agents are revealed only for the selected stream', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  const on = () => [...d.querySelectorAll('#satLayer .reveal.on')].map(r => r.dataset.stream);
+  assert.deepEqual(on(), [], 'nothing is revealed at rest');
+  assert.equal(d.querySelectorAll('#orbit .sublink').length, 31, 'all 31 register labels exist and are reachable once revealed');
+  click(w, d.querySelector('#node03'));
+  assert.deepEqual(on(), ['03']);
+  assert.ok(d.querySelector('.stagewrap').classList.contains('focus'), 'instruments step back while a stream is selected');
+  click(w, d.querySelector('#node01'));
+  assert.deepEqual(on(), ['01']);
+  assert.equal(d.querySelectorAll('#satLayer .reveal[data-stream="01"] .sat').length, 5, 'stream 01 reveals its five registered agents');
+  click(w, d.querySelector('#panelClose'));
+  assert.deepEqual(on(), []);
+  assert.ok(!d.querySelector('.stagewrap').classList.contains('focus'));
+});
+
+test('the agent console has a clear return path to the stream and the company views', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'TI Operations Director (Master Agent)'));
+  assert.ok(d.querySelector('#agentModal').classList.contains('open'));
+  assert.equal(d.querySelector('#crumbCompany').textContent, '00 Company');
+  assert.equal(d.querySelector('#crumbStream').textContent, '01 Travel Intelligence');
+  click(w, d.querySelector('#crumbStream'));
+  assert.ok(!d.querySelector('#agentModal').classList.contains('open'));
+  assert.ok(d.querySelector('#panel').classList.contains('show'), 'back at the stream view');
+  assert.match(d.querySelector('#panelTitle').textContent, /01 Travel Intelligence/);
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'Agent SQE'));
+  click(w, d.querySelector('#crumbCompany'));
+  assert.ok(!d.querySelector('#agentModal').classList.contains('open') && !d.querySelector('#panel').classList.contains('show'), 'back at company level');
+});
+
+test('stream nodes carry the cinematic imagery from the approved reference, with local files only', async () => {
+  const d = (await load()).window.document;
+  for (const id of ['01', '02', '03', '04', '05', '06']) {
+    const img = d.querySelector('#node' + id + ' image');
+    assert.ok(img, 'node ' + id + ' has an image');
+    const href = img.getAttribute('href');
+    assert.equal(href, 'assets/node-' + id + '.jpg');
+    assert.ok(fs.statSync(path.join(SITE, href)).size > 2000, href + ' exists');
+  }
+});
+
+test('the supporting instruments show only values derived from the register and the feed', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  const kpi = k => d.querySelector('.kpi[data-kpi="' + k + '"] b').textContent;
+  assert.equal(kpi('Registered agents'), '8');
+  assert.equal(kpi('Agents reporting (last 24 h)'), 'No reports');
+  w.ACC_APP.applyPublicStatus(doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'active', 3), entry(CONTROLLER, 'Production Controller TI', 'idle', 40)]));
+  assert.equal(kpi('Agents reporting (last 24 h)'), '2 of 8');
+  assert.equal(kpi('Reported working'), '1');
+  assert.equal(kpi('Approvals pending'), '0');
+  assert.match(d.querySelector('#feedLine').textContent, /Feed live/);
+  assert.match(d.querySelector('#feedLine').textContent, /Last successful update \d{2}:\d{2}:\d{2} EEST/);
+  const text = d.querySelector('.huds').textContent;
+  assert.doesNotMatch(text, /€\s?\d|%|health\s+\d/i, 'no invented cost, percentage or health figure');
+});
+
+test('reduced motion switches off every decorative animation', () => {
+  const html = fs.readFileSync(INDEX, 'utf8');
+  const block = /@media \(prefers-reduced-motion:reduce\)\{([\s\S]*?)\n\}/.exec(html);
+  assert.ok(block, 'a reduced-motion block exists');
+  for (const k of ['.spin', '.dash', '.breathe', '.pulsedot', '.panel.show', '.modal.open']) assert.ok(block[1].includes(k), k + ' is disabled');
+  assert.match(block[1], /animation:none!important/);
+  const js = fs.readFileSync(path.join(SITE, 'acc_visual.js'), 'utf8');
+  assert.match(js, /prefers-reduced-motion: reduce/, 'the Earth, backdrop and camera honour the setting');
+});
+
+test('the public view never shows task text, run references, keys or costs in the console', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  const e = entry(MASTER, 'TI Operations Director (Master Agent)', 'idle', 5);
+  w.ACC_APP.applyPublicStatus(doc([e]));
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'TI Operations Director (Master Agent)'));
+  const all = [];
+  for (const t of d.querySelectorAll('#detailTabs button')) { click(w, t); all.push(d.querySelector('#detailContent').textContent); }
+  const text = all.join(' ');
+  assert.doesNotMatch(text, /sk-ant|k_[0-9a-f]{12}|secret|signing|bearer|run ref|€\s?\d/i);
+  assert.match(text, /Not published/);
 });

@@ -55,6 +55,31 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   check('desktop: holographic Earth is drawn on its canvas', earthPx.n > 20000, JSON.stringify(earthPx));
   check('desktop: one orb per registered agent beside its stream', (await page.locator('#satLayer .sat').count()) === 8);
   check('desktop: backdrop canvas covers the viewport', await page.evaluate(() => { const c = document.getElementById('fxBg'); return c.width >= innerWidth && c.height >= innerHeight; }));
+  const dom = await page.evaluate(() => { const r = document.getElementById('orbit').getBoundingClientRect(); return { w: r.width / innerWidth, h: r.height / innerHeight }; });
+  check('desktop: the orbital network dominates the screen', dom.w >= .85 && dom.h >= .6, JSON.stringify(dom));
+  const overlap = await page.evaluate(() => { const nodes = [...document.querySelectorAll('#orbit .node')].map(n => n.getBoundingClientRect()); const hits = [];
+    for (const h of document.querySelectorAll('.hud')) { const a = h.getBoundingClientRect(); for (const b of nodes) if (a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top) hits.push(h.className); } return hits; });
+  check('desktop: supporting instruments never cover the orbital nodes', overlap.length === 0, overlap.join(','));
+  check('desktop: no conventional boxed panels on the first screen', await page.evaluate(() => [...document.querySelectorAll('.hud, .hud-top, .dock, .strip-grid, .agent, .kpi, .kpis, .rows, .rows li, .feedline, .keylist, .keylist li')].filter(e => getComputedStyle(e).display !== 'none').every(e => { const s = getComputedStyle(e); const boxed = ['Top', 'Right', 'Bottom', 'Left'].every(k => parseFloat(s['border' + k + 'Width']) > 0 && s['border' + k + 'Style'] !== 'none'); return !boxed && s.clipPath === 'none'; })));
+  await page.waitForTimeout(1800);
+  const perf = await page.evaluate(() => window.ACC_PERF && window.ACC_PERF());
+  check('desktop: Earth animation stays within its frame budget (adaptive quality)', perf && perf.earthMs < 60, JSON.stringify(perf));
+  await page.screenshot({ path: path.join(OUT, '01c_desktop_level00.png') });
+  // the individual agent command interface
+  await page.locator('#agentGrid .agent', { hasText: 'TI Operations Director' }).click();
+  await page.waitForSelector('#agentModal.open'); await page.waitForTimeout(700);
+  const geo = await page.evaluate(() => { const cx = document.getElementById('core').getBoundingClientRect(), c = { x: cx.left + cx.width / 2, y: cx.top + cx.height / 2 };
+    const inDisc = id => { const g = document.createRange(); g.selectNodeContents(document.getElementById(id)); const r = g.getBoundingClientRect(); return [[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]].every(([x, y]) => Math.hypot(x - c.x, y - c.y) <= cx.width * .23); };
+    const ds = [...document.querySelectorAll('#detailTabs button')].map(b => { const r = b.getBoundingClientRect(); return Math.hypot(r.left + r.width / 2 - c.x, r.top + r.height / 2 - c.y) / cx.width; });
+    return { name: inDisc('detailName'), state: inDisc('detailState'), fresh: inDisc('detailFresh'), spread: Math.max(...ds) - Math.min(...ds), radius: ds[0] };
+  });
+  check('desktop: agent core text sits inside the holographic core', geo.name && geo.state && geo.fresh, JSON.stringify(geo));
+  check('desktop: five radial navigation nodes on one circle around the core', geo.spread < .01 && geo.radius > .3, JSON.stringify(geo));
+  await page.screenshot({ path: path.join(OUT, '01d_desktop_master_console.png') });
+  await page.locator('#detailTabs button').nth(2).click(); await page.waitForTimeout(300);
+  check('desktop: selecting a radial node opens its holographic panel', /Performance/i.test(await page.locator('#detailPaneTitle').textContent()));
+  await page.click('#crumbCompany'); await page.waitForTimeout(500);
+  check('desktop: return path leads back to the company view', !(await page.locator('#agentModal.open').count()));
   const box0 = await page.evaluate(() => document.getElementById('orbit').getAttribute('viewBox'));
   await page.click('#node01'); await page.waitForTimeout(900);
   const box1 = await page.evaluate(() => document.getElementById('orbit').getAttribute('viewBox'));
@@ -79,7 +104,7 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   await page.locator('#agentGrid .agent', { hasText: 'Agent SQE' }).click();
   await page.waitForSelector('#agentModal.open');
   await page.screenshot({ path: path.join(OUT, '04_agent_provisional_overview.png') });
-  check('desktop: provisional agent shows no verified code', /No verified code/.test(await page.locator('#detailContent').textContent()) || /interim/i.test(await page.locator('#detailContent').textContent()));
+  check('desktop: provisional agent shows no verified code', /No verified code/.test(await page.locator('#detailCode').textContent()));
   await page.click('#detailClose');
 
   await page.locator('#agentGrid').scrollIntoViewIfNeeded();
@@ -87,8 +112,20 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
 
   const external = requests.filter(u => !u.startsWith(base) && u !== APPROVED);
   check('desktop: zero requests outside the page origin except the one approved status address', external.length === 0, external.join(', '));
-  check('desktop: only static files requested', requests.every(u => /\/(index\.html|acc_core\.js|acc_register\.js|acc_visual\.js|status\.json|)$/.test(new URL(u).pathname)), requests.join(', '));
+  check('desktop: only static files requested', requests.every(u => /\/(index\.html|acc_core\.js|acc_register\.js|acc_visual\.js|status\.json|assets\/node-0[1-6]\.jpg|)$/.test(new URL(u).pathname)), requests.join(', '));
   check('desktop: no console errors or warnings', problems.length === 0, problems.join(' | '));
+  await ctx.close();
+}
+
+// ---------- reduced motion ----------
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  await ctx.route(APPROVED, route => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: EMPTY_STATUS }));
+  const page = await ctx.newPage(); await page.goto(base + '/', { waitUntil: 'load' }); await page.waitForSelector('#orbit .node'); await page.waitForTimeout(800);
+  const running = await page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running' && !(a instanceof CSSTransition)).length);
+  check('reduced motion: no decorative animation is running', running === 0, String(running));
+  const b0 = await page.evaluate(() => document.getElementById('orbit').getAttribute('viewBox')); await page.click('#node03'); await page.waitForTimeout(150);
+  check('reduced motion: camera moves without a tween', (await page.evaluate(() => document.getElementById('orbit').getAttribute('viewBox'))) !== b0);
   await ctx.close();
 }
 

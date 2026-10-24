@@ -58,24 +58,30 @@ test('a stale report and an unresolved start are Unknown, never Active', async (
   assert.doesNotMatch(card(d, 'Country Intelligence Builder').textContent, /Active/);
 });
 
-test('agent panel shows verified history and timestamps; unpublished fields say Not published', async () => {
+test('agent console shows verified history and timestamps; unpublished fields say Not published', async () => {
   const dom = await load(); const w = dom.window, d = w.document;
   const hist = [{ at_utc: ago(5), state: 'idle', mode: 'dry_run', delivered_late: false }, { at_utc: ago(6), state: 'active', mode: 'dry_run', delivered_late: false }, { at_utc: ago(300), state: 'failed', mode: null, delivered_late: true }];
   w.ACC_APP.applyPublicStatus(doc([entry(MASTER, 'TI Operations Director (Master Agent)', 'idle', 5, hist)]));
   click(w, card(d, 'TI Operations Director (Master Agent)'));
   assert.match(d.querySelector('#detailStatus').textContent, /Idle, reported .*Restricted public view/);
+  assert.equal(d.querySelector('#detailCode').textContent, MASTER, 'the permanent FT identifier is shown');
+  assert.match(d.querySelector('#detailFresh').textContent, /Reported 5 min ago/);
+  assert.ok(d.querySelector('#coreSvg .freshArc'), 'reporting freshness is drawn as an arc around the core');
   const tabs = [...d.querySelectorAll('#detailTabs button')];
+  assert.deepEqual(tabs.map(t => t.textContent), ['Current activity', 'Activity history', 'Performance', 'Costs', 'Controls & approvals']);
+  let cur = d.querySelector('#detailContent').textContent;                       // default facet: current activity
+  assert.match(cur, /Current taskNot published/); assert.match(cur, /Execution modeDry run/); assert.match(cur, /Last execution time/); assert.match(cur, /Europe\/Nicosia \(EET or EEST\)/);
   click(w, tabs[1]);
-  const cur = d.querySelector('#detailContent').textContent;
-  assert.match(cur, /Model tierNot published/); assert.match(cur, /Run referenceNot published/); assert.match(cur, /Reported costNot published/);
-  assert.match(cur, /Execution modeDry run/);
-  click(w, tabs[2]);
   const items = [...d.querySelectorAll('#detailContent .hist li')];
   assert.equal(items.length, 3, 'all three reports are listed');
   assert.match(items[0].textContent, /Idle/); assert.match(items[1].textContent, /Active/); assert.match(items[2].textContent, /Failed/);
-  click(w, tabs[0]);
-  assert.match(d.querySelector('#detailContent').textContent, /Reports via ACC service \(restricted view\)/);
-  assert.doesNotMatch(d.querySelector('#detailContent').textContent, /Not connected/);
+  click(w, tabs[2]); cur = d.querySelector('#detailContent').textContent;
+  assert.match(cur, /Reports received \(in view\)3/); assert.match(cur, /Tasks completed and success rateUnavailable: not published/);
+  click(w, tabs[3]); cur = d.querySelector('#detailContent').textContent;
+  assert.match(cur, /Reported costNot published/); assert.match(cur, /Model tierNot published/); assert.match(cur, /Spending allowanceNot published/);
+  click(w, tabs[4]); cur = d.querySelector('#detailContent').textContent;
+  assert.match(cur, /Approval stateNo approval request reported/); assert.match(cur, /Remote controlsNone enabled/);
+  assert.doesNotMatch(d.querySelector('#agentModal').textContent, /Not connected|sk-ant|k_[0-9a-f]{12}/);
 });
 
 test('no violation or review noise from private governance reaches the public view', async () => {
@@ -163,7 +169,7 @@ test('each agent shows identity, operating stream, status, last report time and 
   click(w, card(d, 'Production Controller TI'));
   assert.match(d.querySelector('#detailPath').textContent, /Home 03AA-04, operates in 01 Travel Intelligence/);   // operating stream
   assert.match(d.querySelector('#detailStatus').textContent, /Idle, reported 23 Oct 2026, 1\d:\d{2}/);
-  click(w, [...d.querySelectorAll('#detailTabs button')][2]);
+  click(w, [...d.querySelectorAll('#detailTabs button')][1]);
   const items = [...d.querySelectorAll('#detailContent .hist li')].map(li => li.textContent);
   assert.equal(items.length, 2);                                   // sanitised recent history, newest first
   assert.match(items[0], /Idle/); assert.match(items[1], /Active/);
