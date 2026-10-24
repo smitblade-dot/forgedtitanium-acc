@@ -24,6 +24,7 @@ const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 const ACC = require('../acc_core.js');
 const PUBLIC = require('./public_status.js');
+const PUBLIC_COST = require('./public_cost.js');
 
 const GENESIS = '0'.repeat(64);
 const SKEW_MS = 5 * 60 * 1000;
@@ -239,7 +240,10 @@ function createAccServer(opts) {
   const publicStatusOn = o.publicStatus !== undefined ? !!o.publicStatus : process.env.ACC_PUBLIC_STATUS === '1';
   const publicOrigin = o.publicOrigin !== undefined ? o.publicOrigin : (process.env.ACC_PUBLIC_ORIGIN || '');
   if (publicOrigin && !/^https:\/\/[a-z0-9.-]+(:\d{1,5})?$/.test(publicOrigin)) throw new Error('ACC_PUBLIC_ORIGIN must be one https origin, for example https://example.github.io');
-  let publicCache = null;
+  /* Proposed public cost projection (ACC-R018). OFF unless ACC_PUBLIC_COST=1, which requires the owner's approval of the field list
+     in docs/R018_PUBLIC_COST.md. Same exposure rules as the public status document. */
+  const publicCostOn = o.publicCost !== undefined ? !!o.publicCost : process.env.ACC_PUBLIC_COST === '1';
+  let publicCache = null, costCache = null;
   const db = openDb(dataDir);
   const ctx = { db, keysFile, now };
   const rate = new Map();
@@ -352,7 +356,8 @@ function createAccServer(opts) {
     const p = url.pathname;
     try {
       const isPublicStatus = publicStatusOn && req.method === 'GET' && p === '/public/status.json';
-      if (ingestOnly && !((req.method === 'POST' && p === '/v1/events') || (req.method === 'GET' && p === '/v1/health') || isPublicStatus)) {
+      const isPublicCost = publicCostOn && req.method === 'GET' && p === '/public/cost.json';
+      if (ingestOnly && !((req.method === 'POST' && p === '/v1/events') || (req.method === 'GET' && p === '/v1/health') || isPublicStatus || isPublicCost)) {
         return send(res, 404, { error: 'not found' });
       }
       if (req.method === 'GET' && STATIC[p]) {
@@ -370,6 +375,17 @@ function createAccServer(opts) {
         const h = { 'Cache-Control': 'public, max-age=30', 'Referrer-Policy': 'no-referrer' };
         if (publicOrigin) { h['Access-Control-Allow-Origin'] = publicOrigin; h['Vary'] = 'Origin'; }
         return send(res, 200, publicCache.body, h);
+      }
+      if (isPublicCost) {
+        if (limited('public:' + remoteOf(req))) return send(res, 429, { error: 'rate limit exceeded' });
+        const t = now();
+        if (!costCache || t - costCache.at > 30000) {
+          const rows = db.prepare('SELECT schema_version, raw_json, key_id, received_at_utc FROM events ORDER BY timestamp_utc').all();
+          costCache = { at: t, body: PUBLIC_COST.buildPublicCost(rows, t) };
+        }
+        const h = { 'Cache-Control': 'public, max-age=30', 'Referrer-Policy': 'no-referrer' };
+        if (publicOrigin) { h['Access-Control-Allow-Origin'] = publicOrigin; h['Vary'] = 'Origin'; }
+        return send(res, 200, costCache.body, h);
       }
       if (req.method === 'GET' && p === '/v1/health') return ingestOnly
         ? send(res, 200, { ok: true })
@@ -443,13 +459,18 @@ function createAccServer(opts) {
   };
 }
 
+function publicCostDoc(db, nowMs) {
+  const rows = db.prepare('SELECT schema_version, raw_json, key_id, received_at_utc FROM events ORDER BY timestamp_utc').all();
+  return PUBLIC_COST.buildPublicCost(rows, nowMs);
+}
+
 function publicStatusDoc(db, nowMs) {
   const rows = db.prepare('SELECT schema_version, raw_json, key_id, received_at_utc FROM events ORDER BY timestamp_utc').all();
   return PUBLIC.buildPublicStatus(rows, nowMs);
 }
 
 module.exports = { createAccServer, sign, canonical, verifyAudit, appendAudit, issueAgentKey, issueViewerToken, revoke, readKeys, openDb,
-  dbStats, backupDb, verifyBackup, exportAudit, verifyAuditExport, publicStatusDoc };
+  dbStats, backupDb, verifyBackup, exportAudit, verifyAuditExport, publicStatusDoc, publicCostDoc };
 
 if (require.main === module) {
   const s = createAccServer();

@@ -9,6 +9,7 @@
    node server/acc_admin.js verify-backup <file.sqlite3>
    node server/acc_admin.js export-audit <file.jsonl>
    node server/acc_admin.js publish-status <file.json>   write the restricted public status document (no secrets, no task data)
+   node server/acc_admin.js publish-cost <file.json>     write the PROPOSED public cost projection for owner review (never served unless ACC_PUBLIC_COST=1)
    Uses ACC_DATA_DIR and ACC_KEYS_FILE. Secrets are printed once and never logged. */
 'use strict';
 const path = require('node:path');
@@ -35,7 +36,8 @@ function main(argv) {
       case 'verify-backup': { const v = S.verifyBackup(arg); console.log(JSON.stringify(v, null, 2)); process.exitCode = v.ok ? 0 : 1; break; }
       case 'export-audit': { if (!arg) throw new Error('export-audit needs a file'); console.log(JSON.stringify(S.exportAudit(c, arg, 'admin-cli'), null, 2)); break; }
       case 'publish-status': { if (!arg) throw new Error('publish-status needs a file'); const doc = S.publicStatusDoc(c.db, Date.now()); require('node:fs').writeFileSync(arg, JSON.stringify(doc, null, 2) + '\n'); console.log('Wrote ' + arg + ' (' + doc.agents.length + ' agents, generated ' + doc.generated_at_utc + ')'); break; }
-      default: console.log('Commands: issue-agent-key <code> | issue-viewer-token <label> | revoke <id> | list | verify-audit | stats | backup <dir> | verify-backup <file> | export-audit <file> | publish-status <file>'); process.exitCode = 2;
+      case 'publish-cost': { if (!arg) throw new Error('publish-cost needs a file'); const doc = S.publicCostDoc(c.db, Date.now()); require('node:fs').writeFileSync(arg, JSON.stringify(doc, null, 2) + '\n'); console.log('Wrote ' + arg + ' (' + doc.by_agent.length + ' agents, generated ' + doc.generated_at_utc + ')'); break; }
+      default: console.log('Commands: issue-agent-key <code> | issue-viewer-token <label> | revoke <id> | list | verify-audit | stats | backup <dir> | verify-backup <file> | export-audit <file> | publish-status <file> | publish-cost <file>'); process.exitCode = 2;
     }
   } catch (e) { console.error(e.message); process.exitCode = 1; }
   finally { c.db.close(); }
