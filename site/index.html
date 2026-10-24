@@ -320,7 +320,10 @@ h3.ph{margin:0 0 8px;font-family:var(--display);font-size:19px;letter-spacing:.1
 }
 @media (max-width:640px){
   .hud-top{grid-template-columns:1fr auto;padding:12px 14px 4px}
-  .notice{grid-column:1 / -1;order:3;font-size:11px}
+  .hudcenter{grid-column:1 / -1;order:3;width:100%}
+  .notice{font-size:11.5px;letter-spacing:.05em;white-space:normal;line-height:1.3}
+  .kpis{gap:2px 14px}
+  .kpi b{font-size:19px}.kpi span{font-size:11px;letter-spacing:.1em}
   .stage{height:112vw;min-height:380px}
   .huds{grid-template-columns:1fr;padding:8px 14px 4px}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1113,12 +1116,19 @@ function drawAgent(){
       c.append(sp, el('p', {cls:'empty', text:'Each marker is one genuine reported event, placed by time. Shape shows the reported state.'}));
     }
   } else if (selTab === 'costs') {
-    if (hasCost) {
+    const ca = costDoc && a.code ? costDoc.by_agent.find(x => x.agent_id === a.code) : null;
+    if (ca) {
+      c.append(el('div', {cls:'grid2'},
+        cell('API cost today', money(ca.today.api) || 'No cost data'), cell('API cost, month to date', money(ca.month.api) || 'No cost data'),
+        cell('Coverage today', coverage(ca.today.api), true), cell('Subscription usage (kept separate)', ca.today.subscription.state === 'recorded' ? eur(ca.today.subscription.amount_eur) : 'No cost data'),
+        cell('Original currency', ca.today.original_currency.state === 'recorded' ? ca.today.original_currency.currency + ' ' + ca.today.original_currency.amount + ', not converted' : 'No cost data')));
+      c.append(el('div', {cls:'msg', style:'margin-top:12px', text:costDoc.evidence.note + '. Nothing is estimated from activity.'}));
+    } else if (hasCost) {
       const p = A.agentPerformance(store, a);
       c.append(el('div', {cls:'grid2'}, cell('API cost reported', p.costed ? eur(p.apiEur) + ' across ' + p.costed + ' of ' + p.total + ' reports' : 'No cost data'), cell('Subscription usage (kept separate)', p.subscriptionEur ? eur(p.subscriptionEur) : 'None reported')));
     } else {
-      c.append(el('div', {cls:'grid2'}, cell('Reported cost', 'Not published'), cell('Model tier', 'Not published'), cell('Spending allowance', 'Not published'), cell('Subscription or API split', 'Not published')));
-      c.append(el('div', {cls:'msg', style:'margin-top:12px', text:'Costs appear here only when authorised cost information is published. None is shown, estimated or inferred.'}));
+      c.append(el('div', {cls:'grid2'}, cell('API cost today', 'No cost data'), cell('API cost, month to date', 'No cost data'), cell('Model tier', 'Not published'), cell('Subscription usage', 'No cost data')));
+      c.append(el('div', {cls:'msg', style:'margin-top:12px', text:'Public cost fields are awaiting the owner\u2019s approval. None is shown, estimated or inferred.'}));
     }
   } else {
     const ctl = a.controls, st2 = cur ? cur.status : 'none';
@@ -1126,8 +1136,6 @@ function drawAgent(){
       cell('Approval state', st2 === 'awaiting_approval' ? 'Approval requested; details are not published' : cur ? 'No approval request reported' : 'No report received'),
       cell('Execution mode as reported', cur ? (cur.dry_run === null ? 'Not stated' : cur.dry_run ? 'Dry run' : 'Live (non-dry-run)') : 'Unknown'),
       cell('Spending allowance', 'Not published'), cell('Remote controls', 'None enabled')));
-    c.append(el('h3', {cls:'ph', style:'font-size:14px;margin:14px 0 6px', text:'Approval requirements'}));
-    const ar = el('ul', {cls:'plain'}); for (const r of ctl.approval_requirements) ar.append(el('li', {text:r})); c.append(ar);
     c.append(el('div', {cls:'msg', style:'margin-top:12px', text:'Display only. The ACC records what agents report; approvals and commands are handled outside this view.'}));
   }
 }

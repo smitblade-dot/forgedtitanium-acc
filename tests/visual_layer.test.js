@@ -321,3 +321,30 @@ test('R018 agent console: floating timeline of genuine events, three circular in
   assert.match(d.querySelector('#detailTimeline').textContent, /No reports received/);
   assert.match(d.querySelector('#detailGauges').textContent, /No report received/);
 });
+
+test('R018 agent costs facet: uses the cost projection for that agent when present, otherwise No cost data', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'TI Operations Director (Master Agent)'));
+  const costsTab = () => d.querySelectorAll('#detailTabs button')[3];
+  click(w, costsTab());
+  assert.match(d.querySelector('#detailContent').textContent, /API cost todayNo cost data/);
+  assert.match(d.querySelector('#detailContent').textContent, /awaiting the owner/);
+  w.ACC_APP.applyPublicCost(COST_DOC());
+  click(w, costsTab());
+  const text = d.querySelector('#detailContent').textContent;
+  assert.match(text, /API cost today\u20ac0\.42/); assert.match(text, /month to date\u20ac1\.50/); assert.match(text, /3 of 4 completion reports carried a cost/);
+  assert.match(text, /not provider invoices/i);
+  click(w, d.querySelector('#detailClose'));
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'Country Intelligence Builder'));
+  click(w, costsTab());
+  assert.match(d.querySelector('#detailContent').textContent, /API cost todayNo cost data/, 'an agent whose reports carried no cost is No cost data, not zero');
+});
+
+test('R018 controls facet: no allowance wording, approval references or requirements in the public console', async () => {
+  const dom = await load(), w = dom.window, d = w.document;
+  click(w, [...d.querySelectorAll('#agentGrid .agent')].find(b => b.querySelector('b').textContent === 'TI Operations Director (Master Agent)'));
+  click(w, d.querySelectorAll('#detailTabs button')[4]);
+  const text = d.querySelector('#detailContent').textContent;
+  assert.match(text, /Spending allowanceNot published/);
+  assert.doesNotMatch(text, /Opus|requires an approved allowance|approval requirements|reference/i);
+});

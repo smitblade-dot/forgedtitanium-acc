@@ -65,6 +65,19 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   const perf = await page.evaluate(() => window.ACC_PERF && window.ACC_PERF());
   check('desktop: Earth animation stays within its frame budget (adaptive quality)', perf && perf.earthMs < 60, JSON.stringify(perf));
   await page.screenshot({ path: path.join(OUT, '01c_desktop_level00.png') });
+  const topo = await page.evaluate(() => { const svg = document.getElementById('orbit'), m = svg.getScreenCTM(); const pt = (path, len) => { const q = path.getPointAtLength(len); const p = svg.createSVGPoint(); p.x = q.x; p.y = q.y; const r = p.matrixTransform(m); return { x: r.x, y: r.y }; };
+    const rc = id => { const r = document.querySelector('#node' + id + ' .ring').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 }; };
+    const core = rc('00'.replace('00', '01')), hub = (() => { const r = document.querySelector('#node00 .halo').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 }; })();
+    return ['01', '02', '03', '04', '05', '06'].map(id => { const path = document.getElementById('link' + id), L = path.getTotalLength(), a = pt(path, 0), b = pt(path, L), n = rc(id);
+      return { id, fromHub: Math.hypot(a.x - hub.x, a.y - hub.y) / hub.r, toNode: Math.hypot(b.x - n.x, b.y - n.y) / n.r, length: L }; }); });
+  check('desktop: all six streams connect directly to 00 (hub and spoke)', topo.every(l => l.fromHub < 1.0 && l.toNode > .95 && l.toNode < 1.45 && l.length > 40), JSON.stringify(topo));
+  check('desktop: no sequential links between streams', (await page.locator('#orbit [id^="flow"], #orbit [marker-end]').count()) === 0);
+  check('desktop: compact sync indicator replaces the long notice', await page.evaluate(() => { const n = document.getElementById('notice'); return /^(Last synchronised: \d{2}:\d{2}:\d{2} E(E)?ST|Not synchronised)/.test(n.textContent) && n.getBoundingClientRect().height < 40 && !/Restricted public view of reports received/.test(document.body.innerText); }));
+  check('desktop: AI cost reads No cost data until the owner approves publication', (await page.locator('#costVal').textContent()) === 'No cost data');
+  await page.click('#costBtn'); await page.waitForTimeout(300);
+  check('desktop: cost detail lists every field as No cost data, with no invented zero', await page.evaluate(() => { const v = [...document.querySelectorAll('#costPanel .costrow .v')]; return v.length === 6 && v.every(x => x.textContent === 'No cost data') && !/\u20ac\s?\d/.test(document.getElementById('costPanel').textContent); }));
+  await page.screenshot({ path: path.join(OUT, '01e_cost_panel_no_data.png') });
+  await page.click('#costBtn');
   // the individual agent command interface
   await page.locator('#agentGrid .agent', { hasText: 'TI Operations Director' }).click();
   await page.waitForSelector('#agentModal.open'); await page.waitForTimeout(700);
@@ -75,10 +88,14 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   });
   check('desktop: agent core text sits inside the holographic core', geo.name && geo.state && geo.fresh, JSON.stringify(geo));
   check('desktop: five radial navigation nodes on one circle around the core', geo.spread < .01 && geo.radius > .3, JSON.stringify(geo));
+  const clash = await page.evaluate(() => { const nav = [...document.querySelectorAll('#detailTabs button')].map(b => b.getBoundingClientRect()); const hit = [];
+    for (const sel of ['.floatl', '.floatr > *']) for (const e of document.querySelectorAll(sel)) { const a = e.getBoundingClientRect(); for (const b of nav) if (a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top) hit.push(sel); } return hit; });
+  check('desktop: floating activity, card and dials never collide with the radial menu', clash.length === 0, clash.join(','));
+  check('desktop: three circular indicators and a genuine-activity timeline are present', (await page.locator('#detailGauges .gauge').count()) === 3 && (await page.locator('#detailTimeline .tl li').count()) >= 1 || (await page.locator('#detailTimeline .empty').count()) === 1);
   await page.screenshot({ path: path.join(OUT, '01d_desktop_master_console.png') });
   await page.locator('#detailTabs button').nth(2).click(); await page.waitForTimeout(300);
   check('desktop: selecting a radial node opens its holographic panel', /Performance/i.test(await page.locator('#detailPaneTitle').textContent()));
-  await page.click('#crumbCompany'); await page.waitForTimeout(500);
+  await page.click('#crumbCompany'); await page.waitForTimeout(1200);
   check('desktop: return path leads back to the company view', !(await page.locator('#agentModal.open').count()));
   const box0 = await page.evaluate(() => document.getElementById('orbit').getAttribute('viewBox'));
   await page.click('#node01'); await page.waitForTimeout(900);

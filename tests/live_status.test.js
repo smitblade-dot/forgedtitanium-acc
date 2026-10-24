@@ -80,7 +80,7 @@ test('agent console shows verified history and timestamps; unpublished fields sa
   click(w, tabs[2]); cur = d.querySelector('#detailContent').textContent;
   assert.match(cur, /Reports received \(in view\)3/); assert.match(cur, /Tasks completed and success rateUnavailable: not published/);
   click(w, tabs[3]); cur = d.querySelector('#detailContent').textContent;
-  assert.match(cur, /Reported costNot published/); assert.match(cur, /Model tierNot published/); assert.match(cur, /Spending allowanceNot published/);
+  assert.match(cur, /API cost todayNo cost data/); assert.match(cur, /Model tierNot published/); assert.doesNotMatch(cur, /allowance/i);
   click(w, tabs[4]); cur = d.querySelector('#detailContent').textContent;
   assert.match(cur, /Approval stateNo approval request reported/); assert.match(cur, /Remote controlsNone enabled/);
   assert.doesNotMatch(d.querySelector('#agentModal').textContent, /Not connected|sk-ant|k_[0-9a-f]{12}/);
