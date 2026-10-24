@@ -24,7 +24,7 @@
     {
       "check": "desktop: holographic Earth is drawn on its canvas",
       "ok": true,
-      "detail": "{\"n\":176592,\"w\":540}"
+      "detail": "{\"n\":163604,\"w\":540}"
     },
     {
       "check": "desktop: one orb per registered agent beside its stream",
@@ -54,17 +54,52 @@
     {
       "check": "desktop: Earth animation stays within its frame budget (adaptive quality)",
       "ok": true,
-      "detail": "{\"earthMs\":30.93417814772801,\"quality\":0.6723999999999999,\"gap\":100}"
+      "detail": "{\"earthMs\":27.50654281231718,\"quality\":0.6723999999999999,\"gap\":100}"
+    },
+    {
+      "check": "desktop: all six streams connect directly to 00 (hub and spoke)",
+      "ok": true,
+      "detail": "[{\"id\":\"01\",\"fromHub\":0.8124998542997881,\"toNode\":1.1276593570720566,\"length\":58},{\"id\":\"02\",\"fromHub\":0.8127251176324387,\"toNode\":1.1276235786413977,\"length\":57.9744873046875},{\"id\":\"03\",\"fromHub\":0.8127251176324387,\"toNode\":1.127623429836459,\"length\":57.9744873046875},{\"id\":\"04\",\"fromHub\":0.8124998542997881,\"toNode\":1.127659059471668,\"length\":58},{\"id\":\"05\",\"fromHub\":0.8127256223995132,\"toNode\":1.1276241690113353,\"length\":57.97446060180664},{\"id\":\"06\",\"fromHub\":0.8127256223995132,\"toNode\":1.1276243178162357,\"length\":57.97446060180664}]"
+    },
+    {
+      "check": "desktop: no sequential links between streams",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: compact sync indicator replaces the long notice",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: AI cost reads No cost data until the owner approves publication",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: cost detail lists every field as No cost data, with no invented zero",
+      "ok": true,
+      "detail": ""
     },
     {
       "check": "desktop: agent core text sits inside the holographic core",
       "ok": true,
-      "detail": "{\"name\":true,\"state\":true,\"fresh\":true,\"spread\":0.00007722984484004325,\"radius\":0.37430095342301595}"
+      "detail": "{\"name\":true,\"state\":true,\"fresh\":true,\"spread\":0.00006289265289782797,\"radius\":0.3743080357142857}"
     },
     {
       "check": "desktop: five radial navigation nodes on one circle around the core",
       "ok": true,
-      "detail": "{\"name\":true,\"state\":true,\"fresh\":true,\"spread\":0.00007722984484004325,\"radius\":0.37430095342301595}"
+      "detail": "{\"name\":true,\"state\":true,\"fresh\":true,\"spread\":0.00006289265289782797,\"radius\":0.3743080357142857}"
+    },
+    {
+      "check": "desktop: floating activity, card and dials never collide with the radial menu",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: three circular indicators and a genuine-activity timeline are present",
+      "ok": true,
+      "detail": ""
     },
     {
       "check": "desktop: selecting a radial node opens its holographic panel",
@@ -109,7 +144,7 @@
     {
       "check": "desktop: only static files requested",
       "ok": true,
-      "detail": "http://127.0.0.1:53125/, http://127.0.0.1:53125/acc_register.js, http://127.0.0.1:53125/acc_core.js, http://127.0.0.1:53125/acc_visual.js, https://forgedtitanium-acc-service.fly.dev/public/status.json, http://127.0.0.1:53125/assets/node-01.jpg, http://127.0.0.1:53125/assets/node-02.jpg, http://127.0.0.1:53125/assets/node-03.jpg, http://127.0.0.1:53125/assets/node-04.jpg, http://127.0.0.1:53125/assets/node-05.jpg, http://127.0.0.1:53125/assets/node-06.jpg"
+      "detail": "http://127.0.0.1:54902/, http://127.0.0.1:54902/acc_register.js, http://127.0.0.1:54902/acc_core.js, http://127.0.0.1:54902/acc_visual.js, https://forgedtitanium-acc-service.fly.dev/public/status.json, http://127.0.0.1:54902/assets/node-01.jpg, http://127.0.0.1:54902/assets/node-02.jpg, http://127.0.0.1:54902/assets/node-03.jpg, http://127.0.0.1:54902/assets/node-04.jpg, http://127.0.0.1:54902/assets/node-05.jpg, http://127.0.0.1:54902/assets/node-06.jpg"
     },
     {
       "check": "desktop: no console errors or warnings",
