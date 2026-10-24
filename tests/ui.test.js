@@ -80,14 +80,16 @@ test('all eight agents open with five detail sections and an unknown status', as
     click(w, btn);
     assert.ok(d.querySelector('#agentModal').classList.contains('open'), a.name);
     const tabs = [...d.querySelectorAll('#detailTabs button')].map(b => b.textContent);
-    assert.deepEqual(tabs, ['Overview', 'Current activity', 'History', 'Performance & costs', 'Controls & approvals']);
+    assert.deepEqual(tabs, ['Current activity', 'Activity history', 'Performance', 'Costs', 'Controls & approvals']);
     for (const t of d.querySelectorAll('#detailTabs button')) {
       click(w, t);
       assert.ok(d.querySelector('#detailContent').textContent.length > 20, a.name + ' ' + t.textContent);
     }
     click(w, d.querySelector('#detailTabs button'));
     assert.match(d.querySelector('#detailStatus').textContent, /No live connection/);
-    assert.match(d.querySelector('#detailContent').textContent, /Restricted public view: only the agent state and report times are shown/);
+    assert.match(d.querySelector('#detailContent').textContent, /No agent activity received/);
+    assert.match(d.querySelector('#detailState').textContent, /Unknown/);
+    assert.match(d.querySelector('#detailFresh').textContent, /No report received/);
     click(w, d.querySelector('#detailClose'));
   }
   dom.window.close();

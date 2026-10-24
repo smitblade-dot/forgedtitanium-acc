@@ -11,7 +11,7 @@ const text = f => fs.readFileSync(path.join(SITE, f), 'utf8');
 const APPROVED_META = '<meta name="acc-status-url" content="https://forgedtitanium-acc-service.fly.dev/public/status.json">';
 
 test('published file set is exactly the public-safe frontend', () => {
-  assert.deepEqual(files, ['.nojekyll', 'acc_core.js', 'acc_register.js', 'acc_visual.js', 'index.html', 'status.json']);
+  assert.deepEqual(files, ['.nojekyll', 'acc_core.js', 'acc_register.js', 'acc_visual.js', 'assets/node-01.jpg', 'assets/node-02.jpg', 'assets/node-03.jpg', 'assets/node-04.jpg', 'assets/node-05.jpg', 'assets/node-06.jpg', 'index.html', 'status.json']);
 });
 
 test('no network calls, storage or third-party requests in shipped code', () => {
