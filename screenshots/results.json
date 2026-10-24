@@ -1,5 +1,5 @@
 {
-  "chrome": "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome",
+  "chrome": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "results": [
     {
       "check": "desktop: orbital has 00 core and six streams",
@@ -19,7 +19,32 @@
     {
       "check": "desktop: 01 above core, 04 below, 02/03 right, 05/06 left (approved layout)",
       "ok": true,
-      "detail": "{\"00\":[720,430],\"01\":[720,264],\"02\":[859,345],\"03\":[859,505],\"04\":[720,586],\"05\":[581,505],\"06\":[581,345]}"
+      "detail": "{\"00\":[720,406],\"01\":[720,243],\"02\":[859,324],\"03\":[859,485],\"04\":[720,565],\"05\":[581,485],\"06\":[581,324]}"
+    },
+    {
+      "check": "desktop: holographic Earth is drawn on its canvas",
+      "ok": true,
+      "detail": "{\"n\":236029,\"w\":643}"
+    },
+    {
+      "check": "desktop: one orb per registered agent beside its stream",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: backdrop canvas covers the viewport",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop: selecting a stream flies the camera in (smooth zoom)",
+      "ok": true,
+      "detail": "0.0 20.0 1200.0 760.0 -> 216.0 20.0 984.0 623.2"
+    },
+    {
+      "check": "desktop: closing returns the camera to the approved full view",
+      "ok": true,
+      "detail": ""
     },
     {
       "check": "desktop: Level 2 detail opens with homed agents",
@@ -37,14 +62,14 @@
       "detail": ""
     },
     {
-      "check": "desktop: zero requests outside the page origin",
+      "check": "desktop: zero requests outside the page origin except the one approved status address",
       "ok": true,
       "detail": ""
     },
     {
       "check": "desktop: only static files requested",
       "ok": true,
-      "detail": "http://127.0.0.1:46815/, http://127.0.0.1:46815/acc_register.js, http://127.0.0.1:46815/acc_core.js, http://127.0.0.1:46815/status.json"
+      "detail": "http://127.0.0.1:50815/, http://127.0.0.1:50815/acc_register.js, http://127.0.0.1:50815/acc_core.js, http://127.0.0.1:50815/acc_visual.js, https://forgedtitanium-acc-service.fly.dev/public/status.json"
     },
     {
       "check": "desktop: no console errors or warnings",
@@ -55,6 +80,16 @@
       "check": "mobile: no horizontal overflow",
       "ok": true,
       "detail": "0"
+    },
+    {
+      "check": "mobile: stream panel Level 2 labels are readable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile: sub-stream labels are not drawn on the small orbit",
+      "ok": true,
+      "detail": ""
     },
     {
       "check": "mobile: agent detail fits the viewport",
