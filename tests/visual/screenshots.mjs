@@ -51,6 +51,17 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   check('desktop: 01 above core, 04 below, 02/03 right, 05/06 left (approved layout)',
     pos['01'][1] < c[1] && pos['04'][1] > c[1] && pos['02'][0] > c[0] && pos['03'][0] > c[0] && pos['05'][0] < c[0] && pos['06'][0] < c[0] && pos['02'][1] < pos['03'][1] && pos['06'][1] < pos['05'][1], JSON.stringify(pos));
 
+  const earthPx = await page.evaluate(() => { const c = document.getElementById('earth'); const x = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < x.length; i += 4) if (x[i] > 40) n++; return { n, w: c.width }; });
+  check('desktop: holographic Earth is drawn on its canvas', earthPx.n > 20000, JSON.stringify(earthPx));
+  check('desktop: one orb per registered agent beside its stream', (await page.locator('#satLayer .sat').count()) === 8);
+  check('desktop: backdrop canvas covers the viewport', await page.evaluate(() => { const c = document.getElementById('fxBg'); return c.width >= innerWidth && c.height >= innerHeight; }));
+  const box0 = await page.evaluate(() => document.getElementById('orbit').getAttribute('viewBox'));
+  await page.click('#node01'); await page.waitForTimeout(900);
+  const box1 = await page.evaluate(() => document.getElementById('orbit').getAttribute('viewBox'));
+  check('desktop: selecting a stream flies the camera in (smooth zoom)', box1 !== box0 && Number(box1.split(' ')[2]) < 1200, box0 + ' -> ' + box1);
+  await page.click('#panelClose'); await page.waitForTimeout(900);
+  check('desktop: closing returns the camera to the approved full view', (await page.evaluate(() => document.getElementById('orbit').getAttribute('viewBox'))) === box0);
+  await page.screenshot({ path: path.join(OUT, '01b_desktop_after_zoom.png') });
   await page.click('#node03');
   await page.click('#orbit .sublink[data-stream="03"][data-sub="3"]');
   await page.waitForSelector('#subDetail');
@@ -76,7 +87,7 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
 
   const external = requests.filter(u => !u.startsWith(base) && u !== APPROVED);
   check('desktop: zero requests outside the page origin except the one approved status address', external.length === 0, external.join(', '));
-  check('desktop: only static files requested', requests.every(u => /\/(index\.html|acc_core\.js|acc_register\.js|status\.json|)$/.test(new URL(u).pathname)), requests.join(', '));
+  check('desktop: only static files requested', requests.every(u => /\/(index\.html|acc_core\.js|acc_register\.js|acc_visual\.js|status\.json|)$/.test(new URL(u).pathname)), requests.join(', '));
   check('desktop: no console errors or warnings', problems.length === 0, problems.join(' | '));
   await ctx.close();
 }
@@ -90,6 +101,8 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   await page.locator('#node01').dispatchEvent('click');
   await page.waitForSelector('#panel.show');
   await page.screenshot({ path: path.join(OUT, '07_mobile_stream_panel.png') });
+  check('mobile: stream panel Level 2 labels are readable', (await page.locator('#panel button.sublink:visible').count()) === 6);
+  check('mobile: sub-stream labels are not drawn on the small orbit', (await page.locator('#orbit .sublink:visible').count()) === 0);
   await page.locator('#panel ul.rows .agentlink').first().click();
   await page.waitForSelector('#agentModal.open');
   await page.screenshot({ path: path.join(OUT, '08_mobile_agent_detail.png') });

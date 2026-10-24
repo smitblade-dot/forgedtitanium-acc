@@ -101,7 +101,7 @@ test('hostile or malformed documents are ignored whole: unknown fields, bad valu
     assert.equal(w.ACC_APP.applyPublicStatus(mut(fn)), false);
     assert.match(card(d, 'TI Operations Director (Master Agent)').textContent, /Unknown, no report/);
     assert.equal(d.querySelectorAll('img').length, 0);
-    assert.equal(d.querySelectorAll('script').length, 3, 'no script injected (inline app plus the two files)');
+    assert.equal(d.querySelectorAll('script').length, 4, 'no script injected (inline app plus the three files)');
   }
   const dom = await load();
   assert.equal(dom.window.ACC_APP.applyPublicStatus(null), false);
